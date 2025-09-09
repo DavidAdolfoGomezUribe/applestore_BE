@@ -1,0 +1,103 @@
+# VARIABLES DE ENTORNO PARA APPLESTORE BACKEND
+# =============================================
+
+# Este archivo contiene todas las variables de entorno necesarias
+# para el correcto funcionamiento del proyecto AppleStore Backend.
+
+# INSTRUCCIONES:
+# 1. Copia estas variables al archivo .env en la raíz del proyecto
+# 2. Modifica los valores según tu configuración específica
+# 3. NUNCA subas el archivo .env al repositorio (debe estar en .gitignore)
+
+# =============================================
+# CONFIGURACIÓN DE BASE DE DATOS MYSQL
+# =============================================
+
+# Contraseña del usuario root de MySQL
+MYSQL_ROOT_PASSWORD=rootpassword
+
+# Nombre de la base de datos principal
+MYSQL_DATABASE=applestore_db
+
+# Usuario de la aplicación para MySQL
+MYSQL_USER=applestore_user
+
+# Contraseña del usuario de la aplicación
+MYSQL_PASSWORD=applestore_password
+
+# Host del servidor MySQL (usar 'mysql' para Docker, 'localhost' para desarrollo local)
+MYSQL_HOST=mysql
+
+# Puerto interno de MySQL (3306 es el estándar)
+MYSQL_PORT=3306
+
+# =============================================
+# CONFIGURACIÓN DE QDRANT (BASE DE DATOS VECTORIAL)
+# =============================================
+
+# Host del servidor Qdrant (usar 'qdrant' para Docker, 'localhost' para desarrollo local)
+QDRANT_HOST=qdrant
+
+# Puerto de Qdrant
+QDRANT_PORT=6333
+
+# =============================================
+# CONFIGURACIÓN DE LA APLICACIÓN
+# =============================================
+
+# Modo debug (True para desarrollo, False para producción)
+DEBUG=True
+
+# Clave secreta para la aplicación (CAMBIAR EN PRODUCCIÓN)
+SECRET_KEY=your-secret-key-here-change-in-production
+
+# =============================================
+# CONFIGURACIONES ADICIONALES RECOMENDADAS
+# =============================================
+
+# Configuración de CORS (dominios permitidos)
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000
+
+# Configuración de JWT (si se usa autenticación)
+JWT_SECRET_KEY=jwt-secret-key-change-in-production
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Configuración de archivos
+MAX_FILE_SIZE=10485760  # 10MB en bytes
+UPLOAD_FOLDER=./uploads
+
+# Configuración de logs
+LOG_LEVEL=INFO
+LOG_FILE=./logs/app.log
+
+# =============================================
+# EJEMPLO DE CONFIGURACIÓN PARA PRODUCCIÓN
+# =============================================
+
+# Para ambiente de producción, modifica estas variables:
+# MYSQL_HOST=tu-servidor-mysql.com
+# QDRANT_HOST=tu-servidor-qdrant.com
+# DEBUG=False
+# SECRET_KEY=una-clave-muy-segura-y-larga
+# ALLOWED_ORIGINS=https://tu-dominio.com
+
+# =============================================
+# CONFIGURACIÓN PARA DESARROLLO LOCAL (SIN DOCKER)
+# =============================================
+
+# Si ejecutas la aplicación sin Docker, usa:
+# MYSQL_HOST=localhost
+# MYSQL_PORT=3307  # Puerto mapeado en docker-compose
+# QDRANT_HOST=localhost
+# QDRANT_PORT=6333
+
+# =============================================
+# NOTAS IMPORTANTES
+# =============================================
+
+# 1. Todas las contraseñas deben ser seguras en producción
+# 2. El SECRET_KEY debe ser único y aleatorio
+# 3. NUNCA compartas estas credenciales públicamente
+# 4. Usa diferentes valores para desarrollo, staging y producción
+# 5. Considera usar un gestor de secretos para producción (AWS Secrets Manager, Azure Key Vault, etc.)
