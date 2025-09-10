@@ -1,12 +1,12 @@
 -- Datos iniciales completos para AppleStore
 
 -- Usuarios (4: 2 admins, 2 users) - Contraseñas hasheadas con bcrypt
--- Las contraseñas originales son: admin123, admin456, user123, user456
+
 INSERT INTO users (role, name, email, password) VALUES
-('admin', 'Ana Rodríguez', 'ana.rodriguez@applestore.com', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
-('admin', 'Carlos Mendoza', 'carlos.mendoza@applestore.com', '$2b$12$JZg4oM7fJz1E0CwT9dXbTOYgV5uZ7FjQ8XnB2cVe8hPq7wRs6yKlM'), 
-('user', 'Beatriz Silva', 'beatriz.silva@gmail.com', '$2b$12$8Y7k2L9xN6q5ZfM3Vh4CsOEjFx8Pz9QrS6tN7wRy2VgT5bL1KmH8N'),
-('user', 'David González', 'david.gonzalez@outlook.com', '$2b$12$Vq9ZxL8K5fR2Mh6Ng7SbPO2jFw8Qz3TrN4sB7yMx5VcL9dK6HmG2P');
+('admin', 'Ana Rodríguez', 'ana.rodriguez@applestore.com', 'Admin123'),
+('admin', 'Carlos Mendoza', 'carlos.mendoza@applestore.com', 'Admin456'),
+('user', 'Beatriz Silva', 'beatriz.silva@gmail.com', 'User123'),
+('user', 'David González', 'david.gonzalez@outlook.com', 'User456');
 
 -- ===== PRODUCTOS GENERALES =====
 INSERT INTO products (id, name, category, description, price, stock, image_primary_url, image_secondary_url, image_tertiary_url, release_date, is_active) VALUES

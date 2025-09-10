@@ -130,28 +130,6 @@ def get_all_users(
     users = get_all_users_db(skip, limit)
     return users
 
-@router.get("/count")
-def get_users_count(current_admin: dict = Depends(get_current_admin_user)):
-    """Obtiene el número total de usuarios (solo admins)"""
-    count = get_users_count_db()
-    return {"count": count}
-
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user_admin(
-    user: UserCreate, 
-    current_admin: dict = Depends(get_current_admin_user)
-):
-    """Crea un nuevo usuario (solo admins)"""
-    user_id = create_user_db(user.name, user.email, user.password, user.role)
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Email already registered"
-        )
-    
-    created_user = get_user_by_id_db(user_id)
-    return created_user
-
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user_by_id(
     user_id: int, 
@@ -196,34 +174,4 @@ def delete_user_admin(
             detail="User not found"
         )
 
-# === RUTAS LEGACY PARA COMPATIBILIDAD ===
 
-@router.post("/legacy", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user_route(user: UserRequest):
-    """Ruta legacy para crear usuario - usar /register en su lugar"""
-    user_id = create_user_db(user.name, user.email, user.password)
-    if not user_id:
-        raise HTTPException(status_code=500, detail="Error creating user")
-    
-    created_user = get_user_by_id_db(user_id)
-    return created_user
-
-@router.get("/legacy/{user_id}", response_model=UserResponse)
-def get_user_route(user_id: int):
-    """Ruta legacy para obtener usuario - usar /{user_id} con autenticación en su lugar"""
-    user = get_user_by_id_db(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
-@router.put("/legacy/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def update_user_route(user_id: int, user: UserRequest):
-    """Ruta legacy para actualizar usuario - usar /{user_id} con autenticación en su lugar"""
-    if not update_user_db(user_id, user.name, user.email):
-        raise HTTPException(status_code=404, detail="User not found")
-
-@router.delete("/legacy/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user_route(user_id: int):
-    """Ruta legacy para eliminar usuario - usar /{user_id} con autenticación en su lugar"""
-    if not delete_user_db(user_id):
-        raise HTTPException(status_code=404, detail="User not found")

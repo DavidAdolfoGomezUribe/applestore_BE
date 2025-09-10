@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.user import userRoutes
+from routes.migration.migrationRoutes import migration_router
 # from app.routes import chatRoutes, productRoutes
 
 app = FastAPI(
@@ -22,6 +23,9 @@ app.add_middleware(
 # app.include_router(productRoutes.router)
 # app.include_router(chatRoutes.router)
 app.include_router(userRoutes.router)
+
+# TEMPORAL: Router para migración de contraseñas (ELIMINAR EN PRODUCCIÓN)
+app.include_router(migration_router)
 
 @app.get("/")
 async def root():
