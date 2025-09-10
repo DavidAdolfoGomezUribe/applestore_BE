@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.chats import chatRoutes
+from app.routes import chatRoutes, userRoutes, productRoutes
 
 app = FastAPI(
     title="Apple Store Backend API",
@@ -11,13 +11,16 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Configure this properly for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+#routers
 app.include_router(chatRoutes.router)
+app.include_router(userRoutes.router)
+app.include_router(productRoutes.router)
 
 @app.get("/")
 async def root():
