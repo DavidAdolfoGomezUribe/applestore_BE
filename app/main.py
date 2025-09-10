@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import chatRoutes, userRoutes, productRoutes
+from routes.user import userRoutes
+# from app.routes import chatRoutes, productRoutes
 
 app = FastAPI(
     title="Apple Store Backend API",
-    description="Backend API for Apple Store application",
+    description="Backend API for Apple Store application with JWT authentication",
     version="1.0.0"
 )
 
@@ -18,9 +19,9 @@ app.add_middleware(
 )
 
 #routers
-app.include_router(chatRoutes.router)
+# app.include_router(productRoutes.router)
+# app.include_router(chatRoutes.router)
 app.include_router(userRoutes.router)
-app.include_router(productRoutes.router)
 
 @app.get("/")
 async def root():
@@ -28,7 +29,7 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return {"status": "healthy", "version": "1.0.0"}
 
 if __name__ == "__main__":
     import uvicorn
