@@ -1,52 +1,111 @@
--- Datos iniciales para AppleStore
+-- Datos iniciales completos para AppleStore
 
 -- Usuarios (4: 2 admins, 2 users)
 INSERT INTO users (role, name, email, password) VALUES
-('admin', 'Ana Admin', 'ana.admin@example.com', 'adminpass1'),
-('admin', 'Carlos Admin', 'carlos.admin@example.com', 'adminpass2'),
-('user', 'Beatriz User', 'beatriz.user@example.com', 'userpass1'),
-('user', 'David User', 'david.user@example.com', 'userpass2');
+('admin', 'Ana Rodríguez', 'ana.rodriguez@applestore.com', '$2b$12$LQv3c1yqBwEHFKZrUMeUU.ZHa2m2Ej2Qw8Xk9Vm1n3c4Qw8Xk9Vm1'),
+('admin', 'Carlos Mendoza', 'carlos.mendoza@applestore.com', '$2b$12$LQv3c1yqBwEHFKZrUMeUU.ZHa2m2Ej2Qw8Xk9Vm1n3c4Qw8Xk9Vm2'),
+('user', 'Beatriz Silva', 'beatriz.silva@gmail.com', '$2b$12$LQv3c1yqBwEHFKZrUMeUU.ZHa2m2Ej2Qw8Xk9Vm1n3c4Qw8Xk9Vm3'),
+('user', 'David González', 'david.gonzalez@outlook.com', '$2b$12$LQv3c1yqBwEHFKZrUMeUU.ZHa2m2Ej2Qw8Xk9Vm1n3c4Qw8Xk9Vm4');
 
--- 20 productos
-INSERT INTO products (category, name, description, price, stock, image_url) VALUES
-('Iphone', 'iPhone 15 Pro', 'El último iPhone con chip A17', 1299.99, 10, 'https://example.com/iphone15pro.jpg'),
-('Iphone', 'iPhone 14', 'iPhone generación anterior', 999.99, 15, 'https://example.com/iphone14.jpg'),
-('Iphone', 'iPhone SE', 'iPhone compacto y económico', 499.99, 20, 'https://example.com/iphonese.jpg'),
-('Mac', 'MacBook Pro M2', 'Potente portátil para profesionales', 1999.99, 8, 'https://example.com/macbookprom2.jpg'),
-('Mac', 'MacBook Air M1', 'Ligero y eficiente', 1099.99, 12, 'https://example.com/macbookairm1.jpg'),
-('Mac', 'iMac 24"', 'Todo en uno con pantalla Retina', 1599.99, 5, 'https://example.com/imac24.jpg'),
-('Ipad', 'iPad Pro 12.9"', 'iPad profesional con pantalla grande', 1299.99, 7, 'https://example.com/ipadpro12.jpg'),
-('Ipad', 'iPad Air', 'iPad ligero y potente', 799.99, 10, 'https://example.com/ipadair.jpg'),
-('Ipad', 'iPad Mini', 'iPad compacto', 599.99, 9, 'https://example.com/ipadmini.jpg'),
-('Watch', 'Apple Watch Series 9', 'Última generación de Apple Watch', 499.99, 18, 'https://example.com/watch9.jpg'),
-('Watch', 'Apple Watch SE', 'Apple Watch económico', 299.99, 20, 'https://example.com/watchse.jpg'),
-('Accesories', 'AirPods Pro', 'Auriculares inalámbricos con cancelación de ruido', 249.99, 25, 'https://example.com/airpodspro.jpg'),
-('Accesories', 'AirPods 3', 'Auriculares inalámbricos', 179.99, 30, 'https://example.com/airpods3.jpg'),
-('Accesories', 'Magic Mouse', 'Ratón inalámbrico', 99.99, 15, 'https://example.com/magicmouse.jpg'),
-('Accesories', 'Magic Keyboard', 'Teclado inalámbrico', 129.99, 14, 'https://example.com/magickeyboard.jpg'),
-('Accesories', 'Apple Pencil 2', 'Lápiz para iPad', 129.99, 16, 'https://example.com/applepencil2.jpg'),
-('Accesories', 'Smart Folio', 'Funda para iPad', 89.99, 22, 'https://example.com/smartfolio.jpg'),
-('Accesories', 'USB-C Adapter', 'Adaptador USB-C', 39.99, 40, 'https://example.com/usbcadapter.jpg'),
-('Accesories', 'MagSafe Charger', 'Cargador inalámbrico', 49.99, 35, 'https://example.com/magsafecharger.jpg'),
-('Accesories', 'AppleCare+', 'Seguro extendido para productos Apple', 199.99, 50, 'https://example.com/applecare.jpg');
+-- ===== PRODUCTOS GENERALES =====
+INSERT INTO products (id, name, category, description, price, stock, image_primary_url, image_secondary_url, image_tertiary_url, release_date, is_active) VALUES
+-- iPhones
+(1, 'iPhone 15 Pro Max', 'Iphone', 'El iPhone más avanzado con titanio, cámara de 48MP con zoom óptico 5x y chip A17 Pro revolucionario.', 1499.99, 25, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-max-naturaltitanium-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-max-camera.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-max-action-button.jpg', '2023-09-22', TRUE),
+(2, 'iPhone 15 Pro', 'Iphone', 'iPhone Pro con diseño de titanio, cámara avanzada de 48MP y el potente chip A17 Pro para un rendimiento excepcional.', 1299.99, 30, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-naturaltitanium-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-camera-system.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-usbc.jpg', '2023-09-22', TRUE),
+(3, 'iPhone 15', 'Iphone', 'iPhone con cámara principal de 48MP, Dynamic Island innovadora y conectividad USB-C para todos.', 999.99, 40, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pink-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-camera.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-dynamic-island.jpg', '2023-09-22', TRUE),
+(4, 'iPhone 14', 'Iphone', 'iPhone con cámara mejorada, detección de choques, conectividad satelital de emergencia y gran duración de batería.', 799.99, 35, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-14-midnight-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-14-camera.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-14-emergency-sos.jpg', '2022-09-16', TRUE),
+(5, 'iPhone SE', 'Iphone', 'iPhone más accesible con el poderoso chip A15 Bionic, Touch ID y compatibilidad con 5G.', 499.99, 50, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-se-midnight-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-se-chip.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-se-touch-id.jpg', '2022-03-18', TRUE),
 
--- 4 ventas (mezclando productos y usuarios)
+-- MacBooks e iMacs
+(6, 'MacBook Pro 16" M3 Max', 'Mac', 'MacBook Pro definitivo con chip M3 Max de hasta 40 núcleos GPU, pantalla Liquid Retina XDR y hasta 128GB de memoria unificada.', 3999.99, 8, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mbp16-spacegray-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mbp16-keyboard.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mbp16-ports.jpg', '2023-10-30', TRUE),
+(7, 'MacBook Pro 14" M3 Pro', 'Mac', 'MacBook Pro con chip M3 Pro, pantalla Liquid Retina XDR de 14 pulgadas y hasta 36GB de memoria unificada.', 2499.99, 12, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mbp14-spacegray-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mbp14-display.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mbp14-performance.jpg', '2023-10-30', TRUE),
+(8, 'MacBook Air 15" M3', 'Mac', 'MacBook Air espacioso de 15 pulgadas con chip M3, diseño extremadamente delgado y hasta 18 horas de duración de batería.', 1699.99, 20, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba15-midnight-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba15-keyboard.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba15-portability.jpg', '2024-03-04', TRUE),
+(9, 'MacBook Air 13" M3', 'Mac', 'MacBook Air clásico de 13 pulgadas con chip M3, diseño icónico y la mejor relación rendimiento-portabilidad.', 1299.99, 25, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba13-starlight-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba13-magsafe.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba13-performance.jpg', '2024-03-04', TRUE),
+(10, 'iMac 24" M3', 'Mac', 'iMac todo en uno con pantalla Retina 4.5K de 24 pulgadas, chip M3 y diseño vibrante en siete colores.', 1799.99, 15, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/imac-24-blue-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/imac-24-display.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/imac-24-colors.jpg', '2023-10-30', TRUE),
+
+-- iPads
+(11, 'iPad Pro 12.9" M2', 'Ipad', 'iPad Pro máximo con pantalla Liquid Retina XDR de 12.9 pulgadas, chip M2 y compatibilidad total con Apple Pencil y Magic Keyboard.', 1399.99, 18, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-pro-12-silver-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-pro-12-apple-pencil.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-pro-12-magic-keyboard.jpg', '2022-10-18', TRUE),
+(12, 'iPad Pro 11" M2', 'Ipad', 'iPad Pro con pantalla Liquid Retina de 11 pulgadas, chip M2 y diseño portátil perfecto para creativos y profesionales.', 1099.99, 22, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-pro-11-spacegray-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-pro-11-display.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-pro-11-versatility.jpg', '2022-10-18', TRUE),
+(13, 'iPad Air 10.9" M1', 'Ipad', 'iPad Air con chip M1, pantalla Liquid Retina de 10.9 pulgadas y compatibilidad con Apple Pencil de 2ª generación.', 749.99, 28, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-air-blue-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-air-performance.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-air-apple-pencil.jpg', '2022-03-18', TRUE),
+(14, 'iPad 10.9" 10ª gen', 'Ipad', 'iPad versátil de 10ª generación con pantalla Liquid Retina de 10.9 pulgadas, chip A14 Bionic y diseño completamente rediseñado.', 549.99, 35, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-10th-gen-pink-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-10th-gen-landscape.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-10th-gen-colors.jpg', '2022-10-26', TRUE),
+(15, 'iPad mini 8.3" 6ª gen', 'Ipad', 'iPad mini compacto con pantalla Liquid Retina de 8.3 pulgadas, chip A15 Bionic y compatibilidad con Apple Pencil de 2ª generación.', 649.99, 30, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-mini-purple-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-mini-portability.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-mini-apple-pencil.jpg', '2021-09-24', TRUE),
+
+-- Apple Watch
+(16, 'Apple Watch Series 9 45mm', 'Watch', 'Apple Watch más avanzado con chip S9, pantalla Always-On más brillante, nuevos gestos y aplicaciones de salud revolucionarias.', 529.99, 40, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-s9-45-midnight-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-s9-health-features.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-s9-double-tap.jpg', '2023-09-22', TRUE),
+(17, 'Apple Watch Ultra 2 49mm', 'Watch', 'Apple Watch más resistente con caja de titanio, Digital Crown más grande, resistencia extrema y batería de hasta 36 horas.', 949.99, 15, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-ultra2-titanium-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-ultra2-ocean-band.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-ultra2-action-button.jpg', '2023-09-22', TRUE),
+(18, 'Apple Watch SE 40mm', 'Watch', 'Apple Watch esencial con funciones fundamentales de salud y fitness, detección de caídas y notificaciones inteligentes.', 329.99, 60, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-se-40-starlight-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-se-fitness.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-se-value.jpg', '2022-09-16', TRUE),
+
+-- Accesorios
+(19, 'AirPods Pro 2ª gen USB-C', 'Accessories', 'AirPods Pro con cancelación activa de ruido mejorada, audio espacial personalizado y estuche con USB-C.', 279.99, 45, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/airpods-pro-2nd-gen-usbc-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/airpods-pro-2nd-gen-case.jpg', NULL, '2023-09-22', TRUE),
+(20, 'AirPods 3ª generación', 'Accessories', 'AirPods con audio espacial, resistencia al agua IPX4 y hasta 30 horas de duración total de batería.', 199.99, 55, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/airpods-3rd-gen-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/airpods-3rd-gen-case.jpg', NULL, '2021-10-26', TRUE),
+(21, 'Magic Keyboard para iPad Pro 12.9"', 'Accessories', 'Magic Keyboard con trackpad, retroiluminación de teclas y puerto USB-C pass-through para iPad Pro de 12.9 pulgadas.', 449.99, 20, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/magic-keyboard-ipad-pro-12-white-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/magic-keyboard-ipad-typing.jpg', NULL, '2022-10-18', TRUE),
+(22, 'Apple Pencil 2ª generación', 'Accessories', 'Apple Pencil con doble toque, carga inalámbrica magnética y latencia ultra baja para dibujo y escritura precision.', 149.99, 65, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/apple-pencil-2nd-gen-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/apple-pencil-2nd-gen-drawing.jpg', NULL, '2018-11-07', TRUE),
+(23, 'MagSafe Charger', 'Accessories', 'Cargador inalámbrico MagSafe con alineación magnética perfecta y carga rápida de hasta 15W para iPhone.', 49.99, 80, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/magsafe-charger-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/magsafe-charger-iphone.jpg', NULL, '2020-10-23', TRUE),
+(24, 'AirTag 4-pack', 'Accessories', 'Localizadores AirTag con tecnología de Red Buscar, resistencia al agua IP67 y batería reemplazable de un año.', 119.99, 70, 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/airtag-4pack-select.jpg', 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/airtag-precision-finding.jpg', NULL, '2021-04-30', TRUE);
+
+-- ===== DATOS ESPECÍFICOS PARA iPHONES =====
+INSERT INTO iphones (id, model, generation, model_type, storage_options, storage_gb, colors, display_size, display_technology, display_resolution, display_ppi, chip, cameras, camera_features, front_camera, battery_video_hours, fast_charging, wireless_charging, magsafe_compatible, water_resistance, connectivity, face_id, touch_id, operating_system, height_mm, width_mm, depth_mm, weight_grams, box_contents) VALUES
+(1, 'iPhone 15 Pro Max', 15, 'Pro Max', '["256GB", "512GB", "1TB"]', 256, '["Natural Titanium", "Blue Titanium", "White Titanium", "Black Titanium"]', 6.7, 'Super Retina XDR', '2796×1290', 460, 'A17 Pro', '{"main": "48MP", "ultra_wide": "12MP", "telephoto": "12MP 5x"}', '["Night mode", "Portrait mode", "4K ProRes", "Action mode", "Macro photography"]', '12MP TrueDepth', 29, TRUE, TRUE, TRUE, 'IP68', '["5G", "WiFi 6E", "Bluetooth 5.3", "USB-C", "Thread"]', TRUE, FALSE, 'iOS 17', 159.9, 76.7, 8.25, 221, '["iPhone", "USB-C to USB-C Cable", "Documentation"]'),
+(2, 'iPhone 15 Pro', 15, 'Pro', '["128GB", "256GB", "512GB", "1TB"]', 128, '["Natural Titanium", "Blue Titanium", "White Titanium", "Black Titanium"]', 6.1, 'Super Retina XDR', '2556×1179', 460, 'A17 Pro', '{"main": "48MP", "ultra_wide": "12MP", "telephoto": "12MP 3x"}', '["Night mode", "Portrait mode", "4K ProRes", "Action mode", "Macro photography"]', '12MP TrueDepth', 23, TRUE, TRUE, TRUE, 'IP68', '["5G", "WiFi 6E", "Bluetooth 5.3", "USB-C", "Thread"]', TRUE, FALSE, 'iOS 17', 146.6, 70.6, 8.25, 187, '["iPhone", "USB-C to USB-C Cable", "Documentation"]'),
+(3, 'iPhone 15', 15, 'standard', '["128GB", "256GB", "512GB"]', 128, '["Pink", "Yellow", "Green", "Blue", "Black"]', 6.1, 'Super Retina XDR', '2556×1179', 460, 'A16 Bionic', '{"main": "48MP", "ultra_wide": "12MP"}', '["Night mode", "Portrait mode", "4K video", "Action mode"]', '12MP TrueDepth', 20, TRUE, TRUE, TRUE, 'IP68', '["5G", "WiFi 6", "Bluetooth 5.3", "USB-C"]', TRUE, FALSE, 'iOS 17', 147.6, 71.6, 7.80, 171, '["iPhone", "USB-C to USB-C Cable", "Documentation"]'),
+(4, 'iPhone 14', 14, 'standard', '["128GB", "256GB", "512GB"]', 128, '["Midnight", "Purple", "Starlight", "Blue", "Red"]', 6.1, 'Super Retina XDR', '2532×1170', 460, 'A15 Bionic', '{"main": "12MP", "ultra_wide": "12MP"}', '["Night mode", "Portrait mode", "4K video", "Cinematic mode"]', '12MP TrueDepth', 20, TRUE, TRUE, TRUE, 'IP68', '["5G", "WiFi 6", "Bluetooth 5.3", "Lightning"]', TRUE, FALSE, 'iOS 16', 146.7, 71.5, 7.80, 172, '["iPhone", "Lightning to USB-C Cable", "Documentation"]'),
+(5, 'iPhone SE', 3, 'SE', '["64GB", "128GB", "256GB"]', 64, '["Midnight", "Starlight", "Red"]', 4.7, 'Retina HD', '1334×750', 326, 'A15 Bionic', '{"main": "12MP"}', '["Portrait mode", "4K video", "Smart HDR 4"]', '7MP FaceTime HD', 15, TRUE, TRUE, FALSE, 'IP67', '["5G", "WiFi 6", "Bluetooth 5.0", "Lightning"]', FALSE, TRUE, 'iOS 15', 138.4, 67.3, 7.3, 144, '["iPhone", "Lightning to USB-C Cable", "Documentation"]');
+
+-- ===== DATOS ESPECÍFICOS PARA MAC =====
+INSERT INTO macs (id, product_line, screen_size, chip, chip_cores, ram_gb, ram_gb_base, ram_type, storage_options, storage_gb, storage_type, display_technology, display_resolution, display_ppi, display_brightness_nits, display_features, ports, keyboard_type, touch_bar, touch_id, webcam, audio_features, wireless, operating_system, battery_hours, height_mm, width_mm, depth_mm, weight_kg, colors, target_audience) VALUES
+(6, 'MacBook Pro', 16.2, 'M3 Max', '{"cpu": 16, "gpu": 40, "neural": 16}', '[36, 48, 64, 128]', 36, 'Unified Memory', '["1TB", "2TB", "4TB", "8TB"]', 1024, 'SSD', 'Liquid Retina XDR', '3456×2234', 254, 1000, '["P3 wide color", "True Tone", "ProMotion 120Hz"]', '["3x Thunderbolt 4", "HDMI", "SDXC", "MagSafe 3", "3.5mm"]', 'Magic Keyboard with Touch ID', FALSE, TRUE, '1080p FaceTime HD', '["Six-speaker system", "Spatial Audio", "Studio-quality mics"]', '["Wi-Fi 6E", "Bluetooth 5.3"]', 'macOS Sonoma', 22, 16.8, 355.7, 248.1, 2.16, '["Space Black", "Silver"]', 'Pro'),
+(7, 'MacBook Pro', 14.2, 'M3 Pro', '{"cpu": 12, "gpu": 18, "neural": 16}', '[18, 36]', 18, 'Unified Memory', '["512GB", "1TB", "2TB", "4TB"]', 512, 'SSD', 'Liquid Retina XDR', '3024×1964', 254, 1000, '["P3 wide color", "True Tone", "ProMotion 120Hz"]', '["3x Thunderbolt 4", "HDMI", "SDXC", "MagSafe 3", "3.5mm"]', 'Magic Keyboard with Touch ID', FALSE, TRUE, '1080p FaceTime HD', '["Six-speaker system", "Spatial Audio", "Studio-quality mics"]', '["Wi-Fi 6E", "Bluetooth 5.3"]', 'macOS Sonoma', 18, 15.5, 312.6, 221.2, 1.61, '["Space Gray", "Silver"]', 'Pro'),
+(8, 'MacBook Air', 15.3, 'M3', '{"cpu": 8, "gpu": 10, "neural": 16}', '[8, 16, 24]', 8, 'Unified Memory', '["256GB", "512GB", "1TB", "2TB"]', 256, 'SSD', 'Liquid Retina', '2880×1864', 224, 500, '["P3 wide color", "True Tone"]', '["2x Thunderbolt", "MagSafe 3", "3.5mm"]', 'Magic Keyboard with Touch ID', FALSE, TRUE, '1080p FaceTime HD', '["Four-speaker system", "Spatial Audio", "Three-mic array"]', '["Wi-Fi 6E", "Bluetooth 5.3"]', 'macOS Sonoma', 18, 11.5, 340.4, 237.6, 1.51, '["Midnight", "Starlight", "Space Gray", "Silver"]', 'Consumer'),
+(9, 'MacBook Air', 13.6, 'M3', '{"cpu": 8, "gpu": 8, "neural": 16}', '[8, 16, 24]', 8, 'Unified Memory', '["256GB", "512GB", "1TB", "2TB"]', 256, 'SSD', 'Liquid Retina', '2560×1664', 224, 500, '["P3 wide color", "True Tone"]', '["2x Thunderbolt", "MagSafe 3", "3.5mm"]', 'Magic Keyboard with Touch ID', FALSE, TRUE, '1080p FaceTime HD', '["Four-speaker system", "Spatial Audio", "Three-mic array"]', '["Wi-Fi 6E", "Bluetooth 5.3"]', 'macOS Sonoma', 18, 11.3, 304.1, 215.0, 1.24, '["Midnight", "Starlight", "Space Gray", "Silver"]', 'Consumer'),
+(10, 'iMac', 24.0, 'M3', '{"cpu": 8, "gpu": 10, "neural": 16}', '[8, 16, 24]', 8, 'Unified Memory', '["256GB", "512GB", "1TB", "2TB"]', 256, 'SSD', 'Retina 4.5K', '4480×2520', 218, 500, '["P3 wide color", "True Tone", "Anti-reflective coating"]', '["2x Thunderbolt", "2x USB 3", "Gigabit Ethernet", "3.5mm"]', 'Magic Keyboard with Touch ID', FALSE, TRUE, '1080p FaceTime HD', '["Six-speaker system", "Spatial Audio", "Studio-quality mics"]', '["Wi-Fi 6E", "Bluetooth 5.3"]', 'macOS Sonoma', NULL, 461.0, 547.0, 147.0, 4.46, '["Blue", "Green", "Pink", "Silver", "Yellow", "Orange", "Purple"]', 'Consumer');
+
+-- ===== DATOS ESPECÍFICOS PARA iPAD =====
+INSERT INTO ipads (id, product_line, generation, screen_size, display_technology, display_resolution, display_ppi, display_brightness_nits, display_features, chip, storage_options, storage_gb, connectivity_options, cellular_support, cellular_bands, cameras, camera_features, apple_pencil_support, magic_keyboard_support, smart_connector, ports, audio_features, touch_id, face_id, operating_system, battery_hours, height_mm, width_mm, depth_mm, weight_grams, colors) VALUES
+(11, 'iPad Pro', 6, 12.9, 'Liquid Retina XDR', '2732×2048', 264, 1000, '["ProMotion", "P3 wide color", "True Tone", "Fully laminated"]', 'M2', '["128GB", "256GB", "512GB", "1TB", "2TB"]', 128, '["Wi-Fi", "Wi-Fi + Cellular"]', TRUE, '["5G", "LTE", "eSIM"]', '{"rear": "12MP Wide + 10MP Ultra Wide", "front": "12MP Ultra Wide"}', '["4K ProRes video", "Center Stage", "Portrait mode", "LiDAR Scanner"]', '2nd gen', TRUE, TRUE, '["USB-C", "Smart Connector"]', '["Four speakers", "Spatial Audio", "Five mics"]', FALSE, TRUE, 'iPadOS 17', 10, 280.6, 214.9, 6.4, 682, '["Space Gray", "Silver"]'),
+(12, 'iPad Pro', 4, 11.0, 'Liquid Retina', '2388×1668', 264, 600, '["ProMotion", "P3 wide color", "True Tone", "Fully laminated"]', 'M2', '["128GB", "256GB", "512GB", "1TB", "2TB"]', 128, '["Wi-Fi", "Wi-Fi + Cellular"]', TRUE, '["5G", "LTE", "eSIM"]', '{"rear": "12MP Wide + 10MP Ultra Wide", "front": "12MP Ultra Wide"}', '["4K ProRes video", "Center Stage", "Portrait mode", "LiDAR Scanner"]', '2nd gen', TRUE, TRUE, '["USB-C", "Smart Connector"]', '["Four speakers", "Spatial Audio", "Five mics"]', FALSE, TRUE, 'iPadOS 17', 10, 247.6, 178.5, 6.4, 466, '["Space Gray", "Silver"]'),
+(13, 'iPad Air', 5, 10.9, 'Liquid Retina', '2360×1640', 264, 500, '["P3 wide color", "True Tone", "Fully laminated", "Anti-reflective coating"]', 'M1', '["64GB", "256GB"]', 64, '["Wi-Fi", "Wi-Fi + Cellular"]', TRUE, '["5G", "LTE", "eSIM"]', '{"rear": "12MP Wide", "front": "12MP Ultra Wide"}', '["4K video", "Center Stage", "Smart HDR 3"]', '2nd gen', TRUE, TRUE, '["USB-C", "Smart Connector"]', '["Stereo speakers", "Dual microphones"]', TRUE, FALSE, 'iPadOS 17', 10, 247.6, 178.5, 6.1, 461, '["Space Gray", "Pink", "Purple", "Blue", "Starlight"]'),
+(14, 'iPad', 10, 10.9, 'Liquid Retina', '2360×1640', 264, 500, '["sRGB", "True Tone", "Fingerprint-resistant coating"]', 'A14 Bionic', '["64GB", "256GB"]', 64, '["Wi-Fi", "Wi-Fi + Cellular"]', TRUE, '["5G", "LTE", "eSIM"]', '{"rear": "12MP Wide", "front": "12MP Ultra Wide"}', '["4K video", "Center Stage", "Smart HDR 3"]', 'USB-C', FALSE, FALSE, '["USB-C"]', '["Stereo speakers", "Dual microphones"]', TRUE, FALSE, 'iPadOS 17', 10, 248.6, 179.5, 7.0, 477, '["Blue", "Pink", "Yellow", "Silver"]'),
+(15, 'iPad mini', 6, 8.3, 'Liquid Retina', '2266×1488', 326, 500, '["P3 wide color", "True Tone", "Fully laminated", "Anti-reflective coating"]', 'A15 Bionic', '["64GB", "256GB"]', 64, '["Wi-Fi", "Wi-Fi + Cellular"]', TRUE, '["5G", "LTE", "eSIM"]', '{"rear": "12MP Wide", "front": "12MP Ultra Wide"}', '["4K video", "Center Stage", "Smart HDR 3"]', '2nd gen', FALSE, FALSE, '["USB-C"]', '["Stereo speakers", "Dual microphones"]', TRUE, FALSE, 'iPadOS 17', 10, 195.4, 134.8, 6.3, 293, '["Space Gray", "Pink", "Purple", "Starlight"]');
+
+-- ===== DATOS ESPECÍFICOS PARA APPLE WATCH =====
+INSERT INTO apple_watches (id, series, model_type, case_sizes, case_size_mm, case_materials, case_material, display_technology, display_size_sq_mm, display_brightness_nits, display_features, chip, storage_gb, connectivity, cellular_support, health_sensors, fitness_features, crown_type, buttons, water_resistance, operating_system, battery_hours, fast_charging, charging_method, band_compatibility, height_mm, width_mm, depth_mm, weight_grams, colors, target_audience) VALUES
+(16, 9, 'Standard', '["41mm", "45mm"]', 45, '["Aluminum", "Stainless Steel"]', 'Aluminum', 'Always-On Retina', 2000, 2000, '["Always-On", "ECG", "Blood Oxygen"]', 'S9', 64, '["GPS", "Wi-Fi", "Bluetooth"]', FALSE, '["Heart Rate", "ECG", "Blood Oxygen", "Sleep Tracking"]', '["Workout Detection", "Fall Detection", "Crash Detection"]', 'Digital Crown with haptic feedback', '["Digital Crown", "Side Button"]', '50 meters', 'watchOS 10', 18, TRUE, 'Magnetic Fast Charging USB-C', '["All Apple Watch bands 45mm"]', 45.0, 38.0, 10.7, 38.7, '["Midnight", "Starlight", "Silver", "Pink", "Red"]', 'Everyday'),
+(17, 2, 'Ultra', '["49mm"]', 49, '["Titanium"]', 'Titanium', 'Always-On Retina', 2200, 3000, '["Always-On", "ECG", "Blood Oxygen", "Temperature"]', 'S9', 64, '["GPS", "Cellular", "Wi-Fi", "Bluetooth"]', TRUE, '["Heart Rate", "ECG", "Blood Oxygen", "Temperature", "Depth gauge"]', '["Workout Detection", "Fall Detection", "Crash Detection", "Siren"]', 'Digital Crown with haptic feedback', '["Digital Crown", "Side Button", "Action Button"]', '100 meters', 'watchOS 10', 36, TRUE, 'Magnetic Fast Charging USB-C', '["Ocean Band", "Alpine Loop", "Trail Loop"]', 49.0, 44.0, 14.4, 61.3, '["Natural"]', 'Adventure'),
+(18, 2, 'SE', '["40mm", "44mm"]', 40, '["Aluminum"]', 'Aluminum', 'Retina', 1600, 1000, '["Retina display"]', 'S8', 32, '["GPS", "Wi-Fi", "Bluetooth"]', FALSE, '["Heart Rate", "Sleep Tracking"]', '["Workout Detection", "Fall Detection", "Crash Detection"]', 'Digital Crown', '["Digital Crown", "Side Button"]', '50 meters', 'watchOS 10', 18, TRUE, 'Magnetic Charging Cable', '["All Apple Watch bands 40mm"]', 40.0, 34.0, 10.7, 26.4, '["Midnight", "Starlight", "Silver"]', 'Everyday');
+
+-- ===== DATOS ESPECÍFICOS PARA ACCESORIOS =====
+INSERT INTO accessories (id, accessory_type, category, compatibility, wireless_technology, connectivity, battery_hours, charging_case_hours, fast_charging, noise_cancellation, water_resistance, materials, colors, dimensions_mm, weight_grams, special_features, included_accessories, operating_system_req) VALUES
+(19, 'Audio', 'AirPods Pro', '["iPhone", "iPad", "Mac", "Apple Watch", "Apple TV"]', 'Bluetooth 5.3', '["USB-C", "Lightning"]', 6, 30, TRUE, TRUE, 'IPX4', '["Plastic", "Silicone"]', '["White"]', '21.8 x 24.0 x 30.9', 5.3, '["Spatial Audio", "Adaptive Transparency", "Conversation Boost"]', '["AirPods Pro", "USB-C Charging Case", "Silicone ear tips", "USB-C to USB-C Cable", "Documentation"]', 'iOS 16.1 or later'),
+(20, 'Audio', 'AirPods', '["iPhone", "iPad", "Mac", "Apple Watch", "Apple TV"]', 'Bluetooth 5.0', '["Lightning"]', 6, 30, TRUE, FALSE, 'IPX4', '["Plastic"]', '["White"]', '18.26 x 20.75 x 30.79', 4.28, '["Spatial Audio", "Adaptive EQ"]', '["AirPods", "Lightning Charging Case", "Lightning to USB-C Cable", "Documentation"]', 'iOS 15.1 or later'),
+(21, 'Input', 'Magic Keyboard', '["iPad Pro 12.9-inch"]', NULL, '["Smart Connector", "USB-C"]', NULL, NULL, FALSE, FALSE, NULL, '["Aluminum", "Polyurethane"]', '["White", "Black"]', '280.1 x 222.4 x 16.0', 710.0, '["Backlit keys", "Trackpad", "USB-C pass-through", "Floating design"]', '["Magic Keyboard", "Documentation"]', 'iPadOS 13.4 or later'),
+(22, 'Input', 'Apple Pencil', '["iPad Pro", "iPad Air", "iPad mini"]', NULL, '["Magnetic attachment"]', 12, NULL, TRUE, FALSE, NULL, '["Plastic", "Metal"]', '["White"]', '166.0 x 12.0', 20.7, '["Double-tap", "Tilt sensitivity", "Palm rejection", "Magnetic charging"]', '["Apple Pencil", "Documentation"]', 'iPadOS 12.2 or later'),
+(23, 'Charging', 'MagSafe Charger', '["iPhone 12 and later", "AirPods Pro", "AirPods with Wireless Charging Case"]', NULL, '["USB-C", "Magnetic"]', NULL, NULL, TRUE, FALSE, NULL, '["Aluminum", "Plastic"]', '["White"]', '56.0 diameter x 6.74', 36.0, '["15W wireless charging", "Qi compatible", "Magnetic alignment"]', '["MagSafe Charger", "USB-C to USB-C Cable", "Documentation"]', 'iOS 14.1 or later'),
+(24, 'Connectivity', 'AirTag', '["iPhone", "iPad", "Mac with Find My"]', 'Bluetooth', '["NFC", "Ultra Wideband"]', 8760, NULL, FALSE, FALSE, 'IP67', '["Stainless Steel", "Plastic"]', '["Silver"]', '31.9 x 31.9 x 8.0', 11.0, '["Precision Finding", "Find My network", "Privacy protection", "Replaceable battery"]', '["AirTag (4-pack)", "Documentation"]', 'iOS 14.5 or later');
+
+-- ===== VENTAS Y PRODUCTOS POR VENTA =====
 INSERT INTO sales (user_id, total) VALUES
-(1, 2599.98), -- Ana Admin
-(2, 2299.97), -- Carlos Admin
-(3, 1249.96),  -- Beatriz User
-(4, 2399.96); -- David User
+(1, 4999.97), -- Ana Rodríguez (admin)
+(2, 3799.96), -- Carlos Mendoza (admin)
+(3, 1749.98), -- Beatriz Silva (user)
+(4, 2199.97); -- David González (user)
 
 -- Productos por venta (sales_products)
--- Venta 1: Ana Admin compra 2 iPhone 15 Pro
+-- Venta 1: Ana compra MacBook Pro 16" M3 Max, iPad Pro 12.9" M2, AirPods Pro
 INSERT INTO sales_products (sale_id, product_id, quantity, unit_price, subtotal) VALUES
-(1, 1, 2, 1299.99, 2599.98),
--- Venta 2: Carlos Admin compra 1 MacBook Pro M2 y 1 iPad Pro 12.9"
-(2, 4, 1, 1999.99, 1999.99),
-(2, 7, 1, 1299.99, 1299.99),
--- Venta 3: Beatriz User compra 2 Apple Watch Series 9 y 2 AirPods Pro
-(3, 10, 2, 499.99, 999.98),
-(3, 12, 2, 249.99, 499.98),
--- Venta 4: David User compra 2 MacBook Air M1 y 2 Magic Mouse
-(4, 5, 2, 1099.99, 2199.98),
-(4, 14, 2, 99.99, 199.98);
+(1, 6, 1, 3999.99, 3999.99),
+(1, 11, 1, 1399.99, 1399.99),
+(1, 19, 2, 279.99, 559.98),
+-- Venta 2: Carlos compra MacBook Air 15" M3, Apple Watch Series 9, Magic Keyboard
+(2, 8, 1, 1699.99, 1699.99),
+(2, 16, 1, 529.99, 529.99),
+(2, 21, 1, 449.99, 449.99),
+(2, 22, 2, 149.99, 299.98),
+-- Venta 3: Beatriz compra iPhone 15, AirPods 3ª gen
+(3, 3, 1, 999.99, 999.99),
+(3, 20, 1, 199.99, 199.99),
+(3, 23, 1, 49.99, 49.99),
+(3, 24, 1, 119.99, 119.99),
+-- Venta 4: David compra iPhone 15 Pro, iPad Air
+(4, 2, 1, 1299.99, 1299.99),
+(4, 13, 1, 749.99, 749.99),
+(4, 23, 3, 49.99, 149.97);
