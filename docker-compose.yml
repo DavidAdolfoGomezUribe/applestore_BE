@@ -5,6 +5,8 @@ services:
       - "6333:6333"
     volumes:
       - qdrant_data:/qdrant/storage
+    env_file:
+      - .env
 
   mysql:
     image: mysql:8
@@ -17,6 +19,8 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./app/data/mysql/1-schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./app/data/mysql/2-data.sql:/docker-entrypoint-initdb.d/2-data.sql
     env_file:
       - .env
 
