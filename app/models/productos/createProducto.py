@@ -4,7 +4,7 @@ def crear_producto(conn, category, name, description, price, stock, image_url):
     """
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO productos (category, name, description, price, stock, image_url) VALUES (%s, %s, %s, %s, %s, %s)",
+        "INSERT INTO products (category, name, description, price, stock, image_primary_url) VALUES (%s, %s, %s, %s, %s, %s)",
         (category, name, description, price, stock, image_url)
     )
     conn.commit()

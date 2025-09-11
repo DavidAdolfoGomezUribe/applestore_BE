@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Query, Path, status
 from typing import List, Optional
-from app.schemas.chats.chatSchemas import (
+from schemas.chats.chatSchemas import (
     ChatCreate, ChatResponse, MessageCreate, MessageResponse, 
     ChatWithMessages, MessageUpdate
 )
-from app.services.chats.chatService import (
+from services.chats.chatService import (
     create_chat_service, get_chat_service, get_all_chats_service,
     get_unread_chats_service, search_chats_service, update_chat_contact_name_service,
     mark_chat_as_read_service, delete_chat_service, create_message_service,

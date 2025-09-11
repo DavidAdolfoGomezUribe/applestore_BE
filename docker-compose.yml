@@ -21,6 +21,7 @@ services:
       - mysql_data:/var/lib/mysql
       - ./app/data/mysql/1-schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
       - ./app/data/mysql/2-data.sql:/docker-entrypoint-initdb.d/2-data.sql
+      - ./app/data/mysql/3-hash-passwords.sql:/docker-entrypoint-initdb.d/3-hash-passwords.sql
     env_file:
       - .env
 

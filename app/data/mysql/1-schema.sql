@@ -249,4 +249,3 @@ CREATE TABLE IF NOT EXISTS messages (
     INDEX idx_sender (sender),
     INDEX idx_created_at (created_at)
 );
-);

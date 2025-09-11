@@ -1,16 +1,92 @@
 import os
 from dotenv import load_dotenv
 from typing import List, Optional
-from app.database import get_connection
-from app.models.chats.createChat import crear_chat, obtener_chat_por_telefono, obtener_o_crear_chat, actualizar_nombre_contacto
-from app.models.chats.getChat import obtener_chat_por_id, obtener_todos_los_chats, obtener_chats_con_mensajes_no_leidos, buscar_chats
-from app.models.chats.updateChat import actualizar_nombre_contacto, actualizar_ultimo_mensaje, marcar_chat_como_leido, actualizar_actividad_chat, editar_mensaje
-from app.models.chats.deleteChat import eliminar_chat, eliminar_mensaje, eliminar_mensajes_chat
-from app.models.chats.createMensaje import crear_mensaje, marcar_mensajes_como_leidos
-from app.models.chats.getMensajes import obtener_mensajes_por_chat, obtener_ultimo_mensaje_chat, contar_mensajes_chat, obtener_mensajes_por_sender, buscar_mensajes_en_chat
-from app.schemas.chats.chatSchemas import ChatCreate, ChatResponse, MessageCreate, MessageResponse, ChatWithMessages
+from database import get_connection
+from models.chats.createChat import crear_chat, obtener_o_crear_chat
+from models.chats.getChat import obtener_chat_por_id
+from models.chats.updateChat import actualizar_nombre_contacto, marcar_chat_como_leido, editar_mensaje
+from models.chats.deleteChat import eliminar_chat, eliminar_mensaje
+from models.chats.createMensaje import crear_mensaje
+from schemas.chats.chatSchemas import ChatCreate, ChatResponse, MessageCreate, MessageResponse, ChatWithMessages
 
 load_dotenv()
+
+# ========== FUNCIONES AUXILIARES ==========
+
+def obtener_todos_los_chats(conn, limit=50, offset=0):
+    """Obtiene todos los chats con paginación"""
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        "SELECT * FROM chats ORDER BY last_activity DESC LIMIT %s OFFSET %s",
+        (limit, offset)
+    )
+    return cursor.fetchall()
+
+def obtener_chats_con_mensajes_no_leidos(conn):
+    """Obtiene chats que tienen mensajes no leídos"""
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM chats WHERE unread_count > 0 ORDER BY last_activity DESC")
+    return cursor.fetchall()
+
+def buscar_chats(conn, search_term: str):
+    """Busca chats por número de teléfono o nombre de contacto"""
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        """SELECT * FROM chats 
+           WHERE phone_number LIKE %s OR contact_name LIKE %s 
+           ORDER BY last_activity DESC""",
+        (f"%{search_term}%", f"%{search_term}%")
+    )
+    return cursor.fetchall()
+
+def obtener_mensajes_por_chat(conn, chat_id: int, limit=50, offset=0):
+    """Obtiene mensajes de un chat específico"""
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        """SELECT * FROM messages 
+           WHERE chat_id = %s 
+           ORDER BY created_at DESC 
+           LIMIT %s OFFSET %s""",
+        (chat_id, limit, offset)
+    )
+    return cursor.fetchall()
+
+def obtener_ultimo_mensaje_chat(conn, chat_id: int):
+    """Obtiene el último mensaje de un chat"""
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        "SELECT * FROM messages WHERE chat_id = %s ORDER BY created_at DESC LIMIT 1",
+        (chat_id,)
+    )
+    return cursor.fetchone()
+
+def contar_mensajes_chat(conn, chat_id: int) -> int:
+    """Cuenta los mensajes de un chat"""
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) as total FROM messages WHERE chat_id = %s", (chat_id,))
+    return cursor.fetchone()['total']
+
+def obtener_mensajes_por_sender(conn, chat_id: int, sender: str):
+    """Obtiene mensajes de un chat filtrados por remitente"""
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        """SELECT * FROM messages 
+           WHERE chat_id = %s AND sender = %s 
+           ORDER BY created_at DESC""",
+        (chat_id, sender)
+    )
+    return cursor.fetchall()
+
+def buscar_mensajes_en_chat(conn, chat_id: int, search_term: str):
+    """Busca mensajes en un chat específico"""
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        """SELECT * FROM messages 
+           WHERE chat_id = %s AND body LIKE %s 
+           ORDER BY created_at DESC""",
+        (chat_id, f"%{search_term}%")
+    )
+    return cursor.fetchall()
 
 # ========== SERVICIOS DE CHAT ==========
 

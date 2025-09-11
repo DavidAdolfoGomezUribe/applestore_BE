@@ -1,3 +1,5 @@
+import pymysql.cursors
+
 def obtener_usuario_por_id(conn, user_id):
     """
     Obtiene un usuario por su ID.
@@ -7,6 +9,6 @@ def obtener_usuario_por_id(conn, user_id):
     Returns:
         Diccionario con los datos del usuario o None
     """
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM usuarios WHERE id = %s", (user_id,))
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
     return cursor.fetchone()

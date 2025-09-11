@@ -6,5 +6,5 @@ def eliminar_usuario(conn, user_id):
         user_id: ID del usuario
     """
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM usuarios WHERE id=%s", (user_id,))
+    cursor.execute("DELETE FROM users WHERE id=%s", (user_id,))
     conn.commit()

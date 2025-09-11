@@ -327,33 +327,24 @@ def get_product_detail(product_id: int):
     Ruta pública - no requiere autenticación.
     """
     try:
-        result = get_product_by_id_db(product_id)
+        product_data = get_product_by_id_db(product_id)
         
-        if not result:
+        if not product_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Producto no encontrado"
             )
         
-        product_data = result['product']
-        specifications = result['specifications']
-        
         # Crear respuesta base
         response_data = ProductResponse(**product_data).dict()
         
-        # Agregar especificaciones según categoría
-        category = product_data['category']
-        if specifications:
-            if category == 'Iphone':
-                response_data['iphone_spec'] = specifications
-            elif category == 'Mac':
-                response_data['mac_spec'] = specifications
-            elif category == 'Ipad':
-                response_data['ipad_spec'] = specifications
-            elif category == 'Watch':
-                response_data['apple_watch_spec'] = specifications
-            elif category == 'Accessories':
-                response_data['accessory_spec'] = specifications
+        # Por ahora, inicializar todas las especificaciones como None
+        # TODO: Implementar lógica para obtener especificaciones específicas
+        response_data['iphone_spec'] = None
+        response_data['mac_spec'] = None
+        response_data['ipad_spec'] = None
+        response_data['apple_watch_spec'] = None
+        response_data['accessory_spec'] = None
         
         return ProductDetailResponse(**response_data)
         
@@ -437,8 +428,13 @@ def create_product(
             )
         
         # Obtener producto creado para devolver respuesta completa
-        result = get_product_by_id_db(product_id)
-        product_data = result['product']
+        product_data = get_product_by_id_db(product_id)
+        
+        if not product_data:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error obteniendo producto creado"
+            )
         
         return ProductResponse(**product_data)
         
@@ -623,8 +619,13 @@ def update_product(
             )
         
         # Obtener producto actualizado
-        result = get_product_by_id_db(product_id)
-        product_updated = result['product']
+        product_updated = get_product_by_id_db(product_id)
+        
+        if not product_updated:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error obteniendo producto actualizado"
+            )
         
         return ProductResponse(**product_updated)
         

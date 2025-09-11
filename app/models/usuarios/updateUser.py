@@ -9,7 +9,7 @@ def actualizar_usuario(conn, user_id, name, email):
     """
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE usuarios SET name=%s, email=%s WHERE id=%s",
+        "UPDATE users SET name=%s, email=%s WHERE id=%s",
         (name, email, user_id)
     )
     conn.commit()
