@@ -1,20 +1,11 @@
-import pymysql
 import os
 from dotenv import load_dotenv
+from database import get_connection
 
 load_dotenv()
 
-def get_db_connection():
-    return pymysql.connect(
-        host=os.getenv("MYSQL_HOST"),
-        user=os.getenv("MYSQL_USER"),
-        password=os.getenv("MYSQL_PASSWORD"),
-        database=os.getenv("MYSQL_DATABASE"),
-        port=int(os.getenv("MYSQL_PORT"))
-    )
-
 def create_chat_db(user_id: int, source: str):
-    conn = get_db_connection()
+    conn = get_connection()
     try:
         cursor = conn.cursor()
         cursor.execute(
@@ -27,16 +18,16 @@ def create_chat_db(user_id: int, source: str):
         conn.close()
 
 def get_chat_db(chat_id: int):
-    conn = get_db_connection()
+    conn = get_connection()
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM chats WHERE id = %s", (chat_id,))
         return cursor.fetchone()
     finally:
         conn.close()
 
 def close_chat_db(chat_id: int):
-    conn = get_db_connection()
+    conn = get_connection()
     try:
         cursor = conn.cursor()
         cursor.execute("UPDATE chats SET closed_at=NOW() WHERE id=%s", (chat_id,))
@@ -46,7 +37,7 @@ def close_chat_db(chat_id: int):
         conn.close()
 
 def delete_chat_db(chat_id: int):
-    conn = get_db_connection()
+    conn = get_connection()
     try:
         cursor = conn.cursor()
         cursor.execute("DELETE FROM chats WHERE id=%s", (chat_id,))
@@ -56,7 +47,7 @@ def delete_chat_db(chat_id: int):
         conn.close()
 
 def create_message_db(chat_id: int, sender: str, message: str):
-    conn = get_db_connection()
+    conn = get_connection()
     try:
         cursor = conn.cursor()
         cursor.execute(
@@ -69,9 +60,9 @@ def create_message_db(chat_id: int, sender: str, message: str):
         conn.close()
 
 def get_messages_by_chat_db(chat_id: int):
-    conn = get_db_connection()
+    conn = get_connection()
     try:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM mensajes WHERE chat_id = %s ORDER BY created_at ASC", (chat_id,))
         return cursor.fetchall()
     finally:

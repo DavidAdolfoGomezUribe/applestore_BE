@@ -4,10 +4,10 @@ IMPORTANTE: Este endpoint debe eliminarse en producción
 """
 
 from fastapi import APIRouter, HTTPException
-import pymysql
 import os
 from dotenv import load_dotenv
 from auth.auth_utils import hash_password, verify_password
+from database import get_connection
 
 load_dotenv()
 
@@ -16,16 +16,6 @@ migration_router = APIRouter(
     prefix="/admin/migrate",
     tags=["migration"],
 )
-
-def get_db_connection():
-    return pymysql.connect(
-        host=os.getenv("MYSQL_HOST"),
-        user=os.getenv("MYSQL_USER"),
-        password=os.getenv("MYSQL_PASSWORD"),
-        database=os.getenv("MYSQL_DATABASE"),
-        port=int(os.getenv("MYSQL_PORT")),
-        charset='utf8mb4'
-    )
 
 @migration_router.post("/hash-passwords")
 def migrate_passwords_endpoint():
@@ -41,9 +31,9 @@ def migrate_passwords_endpoint():
         'david.gonzalez@outlook.com': 'user456'
     }
     
-    conn = get_db_connection()
+    conn = get_connection()
     try:
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
         
         results = []
         updated_count = 0
@@ -120,9 +110,9 @@ def verify_passwords_endpoint():
         'david.gonzalez@outlook.com': 'user456'
     }
     
-    conn = get_db_connection()
+    conn = get_connection()
     try:
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor = conn.cursor()
         
         results = []
         all_valid = True

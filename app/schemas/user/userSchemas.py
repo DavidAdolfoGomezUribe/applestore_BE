@@ -9,6 +9,24 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=6, description="Contraseña del usuario")
     role: Optional[str] = Field(default="user", pattern="^(admin|user)$", description="Rol del usuario")
 
+    class Config:
+        schema_extra = {
+            "examples": [
+                {
+                    "name": "Juan Pérez",
+                    "email": "juan.perez@example.com",
+                    "password": "miPasswordSegura123",
+                    "role": "user"
+                },
+                {
+                    "name": "Admin User",
+                    "email": "admin@applestore.com",
+                    "password": "AdminSecure456",
+                    "role": "admin"
+                }
+            ]
+        }
+
 class UserUpdate(BaseModel):
     """Esquema para actualizar usuario"""
     name: Optional[str] = Field(None, min_length=3, max_length=100, description="Nombre del usuario")
@@ -24,6 +42,20 @@ class UserLogin(BaseModel):
     """Esquema para login"""
     email: EmailStr = Field(..., description="Email del usuario")
     password: str = Field(..., min_length=1, description="Contraseña del usuario")
+
+    class Config:
+        schema_extra = {
+            "examples": [
+                {
+                    "email": "juan.perez@example.com",
+                    "password": "miPasswordSegura123"
+                },
+                {
+                    "email": "admin@applestore.com", 
+                    "password": "AdminSecure456"
+                }
+            ]
+        }
 
 class UserResponse(BaseModel):
     """Esquema para respuesta de usuario"""
