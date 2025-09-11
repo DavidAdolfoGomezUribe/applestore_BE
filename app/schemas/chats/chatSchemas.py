@@ -1,29 +1,90 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
+from enum import Enum
 
-class ChatCreateRequest(BaseModel):
-    user_id: Optional[int] = None
-    source: str = Field(..., max_length=50)
+# ========== ENUMS ==========
+class MessageSender(str, Enum):
+    USER = "user"
+    BOT = "bot"
+    SYSTEM = "system"
 
-class ChatResponse(BaseModel):
+# ========== SCHEMAS DE CHAT ==========
+class ChatBase(BaseModel):
+    phone_number: str = Field(..., max_length=20, description="Número de teléfono de WhatsApp")
+    contact_name: Optional[str] = Field(None, max_length=100, description="Nombre del contacto (opcional)")
+
+class ChatCreate(ChatBase):
+    user_id: Optional[int] = Field(None, description="ID del usuario (opcional)")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "phone_number": "+573105714739",
+                "contact_name": "Juan Pérez",
+                "user_id": 1
+            }
+        }
+
+class ChatResponse(ChatBase):
     id: int
     user_id: Optional[int]
-    source: str
+    last_message: Optional[str] = Field(None, description="Último mensaje para preview")
+    unread_count: int = Field(0, description="Mensajes no leídos")
     created_at: datetime
-    closed_at: Optional[datetime]
+    last_activity: datetime
+
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-class MessageRequest(BaseModel):
-    sender: str = Field(..., max_length=50)
-    message: str = Field(..., min_length=1)
+# ========== SCHEMAS DE MENSAJES ==========
+class MessageBase(BaseModel):
+    sender: MessageSender = Field(..., description="Quien envía el mensaje")
+    body: str = Field(..., description="Contenido del mensaje")
 
-class MessageResponse(BaseModel):
+class MessageCreate(MessageBase):
+    chat_id: int = Field(..., description="ID del chat")
+
+    class Config:
+        schema_extra = {
+            "examples": [
+                {
+                    "chat_id": 1,
+                    "sender": "user",
+                    "body": "Hola, quiero información sobre iPhones"
+                },
+                {
+                    "chat_id": 1,
+                    "sender": "bot",
+                    "body": "¡Hola! Te puedo ayudar con información sobre nuestros iPhones. ¿Qué modelo te interesa?"
+                }
+            ]
+        }
+
+class MessageResponse(MessageBase):
     id: int
     chat_id: int
-    sender: str
-    message: str
+    is_edited: bool = Field(False, description="Si el mensaje fue editado")
     created_at: datetime
+
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+class MessageUpdate(BaseModel):
+    """Para actualizar un mensaje"""
+    body: Optional[str] = None
+
+# ========== SCHEMAS COMPUESTOS ==========
+class ChatWithMessages(ChatResponse):
+    """Chat con sus mensajes incluidos"""
+    messages: List[MessageResponse] = []
+
+# ========== BACKWARDS COMPATIBILITY ==========
+# Mantener compatibilidad con el código existente
+class ChatCreateRequest(ChatCreate):
+    """Alias para mantener compatibilidad"""
+    pass
+
+class MessageRequest(MessageCreate):
+    """Alias para mantener compatibilidad"""
+    pass

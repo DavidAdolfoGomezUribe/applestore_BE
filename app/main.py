@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.user import userRoutes
 from routes.product import productRoutes
+from routes.chats import chatRoutes
 from routes.migration.migrationRoutes import migration_router
-# from app.routes import chatRoutes
 
 app = FastAPI(
     title="🍎 Apple Store Backend API",
@@ -83,7 +83,7 @@ app.add_middleware(
 
 #routers
 app.include_router(productRoutes.router)
-# app.include_router(chatRoutes.router)
+app.include_router(chatRoutes.router)
 app.include_router(userRoutes.router)
 
 # TEMPORAL: Router para migración de contraseñas (ELIMINAR EN PRODUCCIÓN)

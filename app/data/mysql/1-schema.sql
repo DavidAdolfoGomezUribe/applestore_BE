@@ -217,22 +217,36 @@ CREATE TABLE IF NOT EXISTS sales_products (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
--- Tabla de chats (una conversación)
+-- ===== SISTEMA DE CHATS SIMPLIFICADO =====
+
+-- Tabla principal de chats (especialmente para WhatsApp)
 CREATE TABLE IF NOT EXISTS chats (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    source ENUM('web','whatsapp','telegram') NOT NULL,
+    user_id INT NULL, -- Puede ser NULL para usuarios no registrados
+    phone_number VARCHAR(20) NULL, -- Número de WhatsApp principalmente
+    contact_name VARCHAR(100) NULL, -- Nombre del contacto (opcional)
+    last_message TEXT NULL, -- Último mensaje para preview
+    unread_count INT DEFAULT 0, -- Mensajes no leídos
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    closed_at TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_phone (phone_number),
+    INDEX idx_last_activity (last_activity)
 );
 
--- Tabla de mensajes (historial de cada chat)
+-- Tabla de mensajes 
 CREATE TABLE IF NOT EXISTS messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     chat_id INT NOT NULL,
-    sender ENUM('user','bot') NOT NULL,
-    message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
+    sender ENUM('user','bot','system') NOT NULL, -- Quien envía el mensaje
+    body TEXT NOT NULL, -- Contenido del mensaje
+    is_edited BOOLEAN DEFAULT FALSE, -- Si el mensaje fue editado
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Fecha del mensaje
+    
+    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+    INDEX idx_chat_id (chat_id),
+    INDEX idx_sender (sender),
+    INDEX idx_created_at (created_at)
+);
 );
