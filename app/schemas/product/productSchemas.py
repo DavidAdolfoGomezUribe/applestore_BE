@@ -58,9 +58,6 @@ class ProductFilters(BaseModel):
 class ProductListResponse(BaseModel):
     products: List[ProductResponse]
     total: int
-    page: int
-    page_size: int
-    total_pages: int
 
 # ========== SCHEMAS ESPECÍFICOS POR CATEGORÍA ==========
 

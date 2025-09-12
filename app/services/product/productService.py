@@ -10,6 +10,8 @@ from models.productos.createProduct import create_product
 from models.productos.getProduct import get_product_by_id
 from models.productos.updateProduct import update_product
 from models.productos.deleteProduct import delete_product
+from services.qdrant.vector_sync_service import add_product, update_product, delete_product, extract_vector_from_product
+
 import json
 import logging
 from datetime import datetime
@@ -17,7 +19,6 @@ import pymysql.cursors
 
 logger = logging.getLogger(__name__)
 
-# ========== FUNCIONES AUXILIARES ==========
 
 def get_all_products(conn) -> List[Dict[str, Any]]:
     """Obtiene todos los productos"""
@@ -39,12 +40,6 @@ def get_products_by_category_db(conn, category: str) -> List[Dict[str, Any]]:
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute("SELECT * FROM products WHERE category = %s", (category,))
     return cursor.fetchall()
-
-def count_total_products_db(conn) -> int:
-    """Count total products"""
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-    cursor.execute("SELECT COUNT(*) as total FROM products")
-    return cursor.fetchone()['total']
 
 def update_product_partial_db(conn, product_id: int, update_data: dict) -> bool:
     """Update a product with partial fields"""
@@ -71,30 +66,6 @@ def update_product_stock_db(conn, product_id: int, new_stock: int) -> bool:
     conn.commit()
     return cursor.rowcount > 0
 
-def deactivate_product_db(conn, product_id: int) -> bool:
-    """Deactivate a product (soft delete)"""
-    cursor = conn.cursor()
-    cursor.execute("UPDATE products SET is_active = FALSE WHERE id = %s", (product_id,))
-    conn.commit()
-    return cursor.rowcount > 0
-
-def create_basic_product_db(conn, product_data: ProductCreate) -> Optional[int]:
-    """Create a basic product using the model"""
-    return create_product(
-        conn, 
-        product_data.category.value,
-        product_data.name,
-        product_data.description,
-        product_data.price,
-        product_data.stock,
-        product_data.image_primary_url or ""
-    )
-
-def create_complete_product_db(conn, product_data: ProductCompleteCreate) -> Optional[int]:
-    """Create a complete product - basic implementation"""
-    return create_basic_product_db(conn, product_data.product)
-
-# ========== FUNCIONES HELPER ==========
 def format_json_field(data: Any) -> str:
     """Convierte datos a JSON string para MySQL"""
     if data is None:
@@ -112,27 +83,6 @@ def parse_json_field(data: str) -> Any:
     except (json.JSONDecodeError, TypeError):
         return data
 
-# ========== SERVICIOS DE PRODUCTO ==========
-
-def create_product_service(product_data: ProductCreate) -> Optional[int]:
-    """
-    Crea un producto básico usando el modelo.
-    
-    Args:
-        product_data: Datos del producto
-    
-    Returns:
-        ID del producto creado o None si hay error
-    """
-    conn = get_connection()
-    try:
-        return create_basic_product_db(conn, product_data)
-    except Exception as e:
-        logger.error(f"Error en create_product_service: {e}")
-        return None
-    finally:
-        conn.close()
-
 def create_complete_product_service(product_data: ProductCompleteCreate) -> Optional[int]:
     """
     Crea un producto completo con especificaciones usando el modelo.
@@ -145,11 +95,17 @@ def create_complete_product_service(product_data: ProductCompleteCreate) -> Opti
     """
     conn = get_connection()
     try:
-        # Convertir especificaciones a diccionario
-        specs_dict = None
-        if product_data.specifications:
-            specs_dict = product_data.specifications.dict()
-        return create_complete_product_db(conn, product_data)
+        # Aquí deberías implementar la lógica para crear el producto completo y sus especificaciones
+        # Por ahora, solo crea el producto base (ajusta según tu modelo real)
+        return create_product(
+            conn,
+            product_data.category.value,
+            product_data.name,
+            product_data.description,
+            product_data.price,
+            product_data.stock,
+            product_data.image_primary_url or ""
+        )
     except Exception as e:
         logger.error(f"Error in create_complete_product_service: {e}")
         return None
@@ -339,22 +295,6 @@ def delete_product_service(product_id: int, soft_delete: bool = True) -> bool:
     except Exception as e:
         logger.error(f"Error en delete_product_service: {e}")
         return False
-    finally:
-        conn.close()
-
-def get_products_count_service() -> int:
-    """
-    Obtiene el total de productos activos.
-    
-    Returns:
-        Número total de productos
-    """
-    conn = get_connection()
-    try:
-        return count_total_products_db(conn)
-    except Exception as e:
-        logger.error(f"Error en get_products_count_service: {e}")
-        return 0
     finally:
         conn.close()
 
