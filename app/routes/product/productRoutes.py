@@ -6,10 +6,10 @@ from schemas.product.productSchemas import (
     CategoryEnum
 )
 from services.product.productService import (
-    create_product_db, get_product_by_id_db, get_products_list_db,
-    update_product_db, delete_product_db, hard_delete_product_db,
-    create_complete_product_db, get_products_by_category_db,
-    search_products_db, get_products_in_stock_db, update_stock_db
+    create_product_service, get_product_by_id_service, get_filtered_products_service,
+    update_product_service, delete_product_service,
+    create_complete_product_service, get_products_by_category_service,
+    search_products_service, update_product_stock_service
 )
 from auth.auth_middleware import get_current_admin_user, get_current_user, optional_auth
 import logging
@@ -105,7 +105,7 @@ def get_products(
             search=search
         )
         
-        products, total = get_products_list_db(filters, page, page_size)
+        products, total = get_filtered_products_service(filters, page, page_size)
         total_pages = (total + page_size - 1) // page_size
         
         product_responses = []
@@ -170,13 +170,10 @@ def get_products_by_category(
     Ruta pública - no requiere autenticación.
     """
     try:
-        products, total = get_products_by_category_db(category, page, page_size)
+        # Pass category.value (string) and correct pagination args
+        products, total = get_products_by_category_service(category.value, page_size, (page-1)*page_size)
         total_pages = (total + page_size - 1) // page_size
-        
-        product_responses = []
-        for product in products:
-            product_responses.append(ProductResponse(**product))
-        
+        product_responses = [ProductResponse(**product) for product in products]
         return ProductListResponse(
             products=product_responses,
             total=total,
@@ -184,7 +181,6 @@ def get_products_by_category(
             page_size=page_size,
             total_pages=total_pages
         )
-        
     except Exception as e:
         logger.error(f"Error obteniendo productos por categoría {category}: {str(e)}")
         raise HTTPException(
@@ -203,7 +199,7 @@ def search_products(
     Ruta pública - no requiere autenticación.
     """
     try:
-        products, total = search_products_db(search_term, page, page_size)
+        products, total = search_products_service(search_term, page, page_size)
         total_pages = (total + page_size - 1) // page_size
         
         product_responses = []
@@ -235,7 +231,11 @@ def get_products_in_stock(
     Ruta pública - no requiere autenticación.
     """
     try:
-        products, total = get_products_in_stock_db(page, page_size)
+        filters = ProductFilters(
+            in_stock=True,
+            is_active=True
+        )
+        products, total = get_filtered_products_service(filters, page, page_size)
         total_pages = (total + page_size - 1) // page_size
         
         product_responses = []
@@ -327,7 +327,7 @@ def get_product_detail(product_id: int):
     Ruta pública - no requiere autenticación.
     """
     try:
-        product_data = get_product_by_id_db(product_id)
+        product_data = get_product_by_id_service(product_id)
         
         if not product_data:
             raise HTTPException(
@@ -335,18 +335,7 @@ def get_product_detail(product_id: int):
                 detail="Producto no encontrado"
             )
         
-        # Crear respuesta base
-        response_data = ProductResponse(**product_data).dict()
-        
-        # Por ahora, inicializar todas las especificaciones como None
-        # TODO: Implementar lógica para obtener especificaciones específicas
-        response_data['iphone_spec'] = None
-        response_data['mac_spec'] = None
-        response_data['ipad_spec'] = None
-        response_data['apple_watch_spec'] = None
-        response_data['accessory_spec'] = None
-        
-        return ProductDetailResponse(**response_data)
+        return ProductDetailResponse(**product_data)
         
     except HTTPException:
         raise
@@ -419,7 +408,7 @@ def create_product(
     Requiere rol de administrador.
     """
     try:
-        product_id = create_product_db(product)
+        product_id = create_product_service(product)
         
         if not product_id:
             raise HTTPException(
@@ -428,7 +417,7 @@ def create_product(
             )
         
         # Obtener producto creado para devolver respuesta completa
-        product_data = get_product_by_id_db(product_id)
+        product_data = get_product_by_id_service(product_id)
         
         if not product_data:
             raise HTTPException(
@@ -550,7 +539,7 @@ def create_complete_product(
     Requiere rol de administrador.
     """
     try:
-        product_id = create_complete_product_db(product_data)
+        product_id = create_complete_product_service(product_data)
         
         if not product_id:
             raise HTTPException(
@@ -559,27 +548,9 @@ def create_complete_product(
             )
         
         # Obtener producto creado con especificaciones
-        result = get_product_by_id_db(product_id)
-        product_base = result['product']
-        specifications = result['specifications']
+        product_data = get_product_by_id_service(product_id)
         
-        # Crear respuesta con especificaciones
-        response_data = ProductResponse(**product_base).dict()
-        
-        category = product_base['category']
-        if specifications:
-            if category == 'Iphone':
-                response_data['iphone_spec'] = specifications
-            elif category == 'Mac':
-                response_data['mac_spec'] = specifications
-            elif category == 'Ipad':
-                response_data['ipad_spec'] = specifications
-            elif category == 'Watch':
-                response_data['apple_watch_spec'] = specifications
-            elif category == 'Accessories':
-                response_data['accessory_spec'] = specifications
-        
-        return ProductDetailResponse(**response_data)
+        return ProductDetailResponse(**product_data)
         
     except HTTPException:
         raise
@@ -602,7 +573,7 @@ def update_product(
     """
     try:
         # Verificar que el producto existe
-        existing_product = get_product_by_id_db(product_id)
+        existing_product = get_product_by_id_service(product_id)
         if not existing_product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -610,7 +581,7 @@ def update_product(
             )
         
         # Actualizar producto
-        success = update_product_db(product_id, product_data)
+        success = update_product_service(product_id, product_data)
         
         if not success:
             raise HTTPException(
@@ -619,7 +590,7 @@ def update_product(
             )
         
         # Obtener producto actualizado
-        product_updated = get_product_by_id_db(product_id)
+        product_updated = get_product_by_id_service(product_id)
         
         if not product_updated:
             raise HTTPException(
@@ -650,7 +621,7 @@ def update_product_stock(
     """
     try:
         # Verificar que el producto existe
-        existing_product = get_product_by_id_db(product_id)
+        existing_product = get_product_by_id_service(product_id)
         if not existing_product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -658,7 +629,7 @@ def update_product_stock(
             )
         
         # Actualizar stock
-        success = update_stock_db(product_id, new_stock)
+        success = update_product_stock_service(product_id, new_stock)
         
         if not success:
             raise HTTPException(
@@ -691,7 +662,7 @@ def soft_delete_product(
     Requiere rol de administrador.
     """
     try:
-        success = delete_product_db(product_id)
+        success = delete_product_service(product_id)
         
         if not success:
             raise HTTPException(
@@ -724,7 +695,7 @@ def hard_delete_product(
     ⚠️ CUIDADO: Esta acción no se puede deshacer.
     """
     try:
-        success = hard_delete_product_db(product_id)
+        success = delete_product_service(product_id, soft_delete=False)
         
         if not success:
             raise HTTPException(
@@ -794,7 +765,7 @@ def get_all_products_admin(
             is_active=None if include_inactive else True
         )
         
-        products, total = get_products_list_db(filters, page, page_size)
+        products, total = get_filtered_products_service(filters, page, page_size)
         total_pages = (total + page_size - 1) // page_size
         
         product_responses = []

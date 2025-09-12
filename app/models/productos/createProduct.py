@@ -1,6 +1,6 @@
-def crear_producto(conn, category, name, description, price, stock, image_url):
+def create_product(conn, category, name, description, price, stock, image_url):
     """
-    Crea un nuevo producto en la base de datos.
+    Create a new product in the database.
     """
     cursor = conn.cursor()
     cursor.execute(

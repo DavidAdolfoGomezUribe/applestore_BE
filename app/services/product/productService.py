@@ -6,10 +6,10 @@ from schemas.product.productSchemas import (
     iPhoneSpecCreate, MacSpecCreate, iPadSpecCreate, 
     AppleWatchSpecCreate, AccessorySpecCreate
 )
-from models.productos.createProducto import crear_producto
-from models.productos.getProducto import obtener_producto_por_id
-from models.productos.updateProducto import actualizar_producto
-from models.productos.deleteProducto import eliminar_producto
+from models.productos.createProduct import create_product
+from models.productos.getProduct import get_product_by_id
+from models.productos.updateProduct import update_product
+from models.productos.deleteProduct import delete_product
 import json
 import logging
 from datetime import datetime
@@ -19,14 +19,14 @@ logger = logging.getLogger(__name__)
 
 # ========== FUNCIONES AUXILIARES ==========
 
-def obtener_todos_los_productos(conn) -> List[Dict[str, Any]]:
+def get_all_products(conn) -> List[Dict[str, Any]]:
     """Obtiene todos los productos"""
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute("SELECT * FROM products ORDER BY created_at DESC")
     return cursor.fetchall()
 
-def buscar_productos(conn, search_term: str) -> List[Dict[str, Any]]:
-    """Busca productos por nombre o descripción"""
+def search_products_db(conn, search_term: str) -> List[Dict[str, Any]]:
+    """Search products by name or description"""
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute(
         "SELECT * FROM products WHERE name LIKE %s OR description LIKE %s",
@@ -34,62 +34,53 @@ def buscar_productos(conn, search_term: str) -> List[Dict[str, Any]]:
     )
     return cursor.fetchall()
 
-def obtener_productos_por_categoria(conn, category: str) -> List[Dict[str, Any]]:
-    """Obtiene productos por categoría"""
+def get_products_by_category_db(conn, category: str) -> List[Dict[str, Any]]:
+    """Get products by category"""
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute("SELECT * FROM products WHERE category = %s", (category,))
     return cursor.fetchall()
 
-def contar_productos_total(conn) -> int:
-    """Cuenta el total de productos"""
+def count_total_products_db(conn) -> int:
+    """Count total products"""
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute("SELECT COUNT(*) as total FROM products")
     return cursor.fetchone()['total']
 
-def actualizar_producto_parcial(conn, producto_id: int, update_data: dict) -> bool:
-    """Actualiza un producto con campos parciales"""
+def update_product_partial_db(conn, product_id: int, update_data: dict) -> bool:
+    """Update a product with partial fields"""
     if not update_data:
         return True
-        
-    # Construir query dinámicamente
     fields = []
     values = []
-    
     for field, value in update_data.items():
         if field == 'image_url':
             field = 'image_primary_url'
         fields.append(f"{field} = %s")
         values.append(value)
-    
-    values.append(producto_id)
-    
+    values.append(product_id)
     cursor = conn.cursor()
     query = f"UPDATE products SET {', '.join(fields)} WHERE id = %s"
     cursor.execute(query, values)
     conn.commit()
     return cursor.rowcount > 0
-    """Actualiza el stock de un producto"""
-    cursor = conn.cursor()
-    cursor.execute("UPDATE products SET stock = %s WHERE id = %s", (new_stock, producto_id))
-    return cursor.rowcount > 0
 
-def actualizar_stock_producto(conn, producto_id: int, new_stock: int) -> bool:
-    """Actualiza el stock de un producto"""
+def update_product_stock_db(conn, product_id: int, new_stock: int) -> bool:
+    """Update the stock of a product"""
     cursor = conn.cursor()
-    cursor.execute("UPDATE products SET stock = %s WHERE id = %s", (new_stock, producto_id))
+    cursor.execute("UPDATE products SET stock = %s WHERE id = %s", (new_stock, product_id))
     conn.commit()
     return cursor.rowcount > 0
 
-def desactivar_producto(conn, producto_id: int) -> bool:
-    """Desactiva un producto (soft delete)"""
+def deactivate_product_db(conn, product_id: int) -> bool:
+    """Deactivate a product (soft delete)"""
     cursor = conn.cursor()
-    cursor.execute("UPDATE products SET is_active = FALSE WHERE id = %s", (producto_id,))
+    cursor.execute("UPDATE products SET is_active = FALSE WHERE id = %s", (product_id,))
     conn.commit()
     return cursor.rowcount > 0
 
-def crear_producto_basico(conn, product_data: ProductCreate) -> Optional[int]:
-    """Crea un producto básico usando el modelo existente"""
-    return crear_producto(
+def create_basic_product_db(conn, product_data: ProductCreate) -> Optional[int]:
+    """Create a basic product using the model"""
+    return create_product(
         conn, 
         product_data.category.value,
         product_data.name,
@@ -99,9 +90,9 @@ def crear_producto_basico(conn, product_data: ProductCreate) -> Optional[int]:
         product_data.image_primary_url or ""
     )
 
-def crear_producto_completo(conn, product_data: ProductCompleteCreate) -> Optional[int]:
-    """Crea un producto completo - implementación básica"""
-    return crear_producto_basico(conn, product_data.product)
+def create_complete_product_db(conn, product_data: ProductCompleteCreate) -> Optional[int]:
+    """Create a complete product - basic implementation"""
+    return create_basic_product_db(conn, product_data.product)
 
 # ========== FUNCIONES HELPER ==========
 def format_json_field(data: Any) -> str:
@@ -135,7 +126,7 @@ def create_product_service(product_data: ProductCreate) -> Optional[int]:
     """
     conn = get_connection()
     try:
-        return crear_producto_basico(conn, product_data)
+        return create_basic_product_db(conn, product_data)
     except Exception as e:
         logger.error(f"Error en create_product_service: {e}")
         return None
@@ -158,23 +149,9 @@ def create_complete_product_service(product_data: ProductCompleteCreate) -> Opti
         specs_dict = None
         if product_data.specifications:
             specs_dict = product_data.specifications.dict()
-        
-        return crear_producto_completo(
-            conn=conn,
-            name=product_data.name,
-            category=product_data.category.value,
-            description=product_data.description,
-            price=product_data.price,
-            stock=product_data.stock,
-            image_primary_url=product_data.image_primary_url,
-            image_secondary_url=product_data.image_secondary_url,
-            image_tertiary_url=product_data.image_tertiary_url,
-            release_date=product_data.release_date,
-            is_active=product_data.is_active,
-            specifications=specs_dict
-        )
+        return create_complete_product_db(conn, product_data)
     except Exception as e:
-        logger.error(f"Error en create_complete_product_service: {e}")
+        logger.error(f"Error in create_complete_product_service: {e}")
         return None
     finally:
         conn.close()
@@ -191,7 +168,7 @@ def get_product_by_id_service(product_id: int) -> Optional[Dict[str, Any]]:
     """
     conn = get_connection()
     try:
-        product = obtener_producto_por_id(conn, product_id)
+        product = get_product_by_id(conn, product_id)
         if product:
             # Parsear campos JSON
             for field in ['storage_options', 'colors', 'chip_cores', 'ram_gb', 'storage_options',
@@ -220,7 +197,7 @@ def get_all_products_service(limit: int = 50, offset: int = 0, active_only: bool
     """
     conn = get_connection()
     try:
-        products = obtener_todos_los_productos(conn, limit, offset, active_only)
+        products = get_all_products(conn, limit, offset, active_only)
         # Parsear campos JSON para cada producto
         for product in products:
             for field in ['storage_options', 'colors', 'chip_cores', 'ram_gb', 'storage_options',
@@ -249,18 +226,21 @@ def get_products_by_category_service(category: str, limit: int = 50, offset: int
     """
     conn = get_connection()
     try:
-        products = obtener_productos_por_categoria(conn, category, limit, offset)
-        # Parsear campos JSON para cada producto
+        all_products = get_products_by_category_db(conn, category)
+        total = len(all_products)
+        # Apply pagination
+        products = all_products[offset:offset+limit]
+        # Parse JSON fields for each product
         for product in products:
             for field in ['storage_options', 'colors', 'chip_cores', 'ram_gb', 'storage_options',
                         'display_features', 'ports', 'cameras', 'camera_features', 'connectivity',
                         'wireless', 'audio_features', 'box_contents']:
                 if field in product and product[field]:
                     product[field] = parse_json_field(product[field])
-        return products
+        return products, total
     except Exception as e:
-        logger.error(f"Error en get_products_by_category_service: {e}")
-        return []
+        logger.error(f"Error in get_products_by_category_service: {e}")
+        return [], 0
     finally:
         conn.close()
 
@@ -278,18 +258,19 @@ def search_products_service(search_term: str, limit: int = 50, offset: int = 0) 
     """
     conn = get_connection()
     try:
-        products = buscar_productos(conn, search_term, limit, offset)
-        # Parsear campos JSON para cada producto
+        all_products = search_products_db(conn, search_term)
+        total = len(all_products)
+        products = all_products[offset:offset+limit]
         for product in products:
             for field in ['storage_options', 'colors', 'chip_cores', 'ram_gb', 'storage_options',
                         'display_features', 'ports', 'cameras', 'camera_features', 'connectivity',
                         'wireless', 'audio_features', 'box_contents']:
                 if field in product and product[field]:
                     product[field] = parse_json_field(product[field])
-        return products
+        return products, total
     except Exception as e:
-        logger.error(f"Error en search_products_service: {e}")
-        return []
+        logger.error(f"Error in search_products_service: {e}")
+        return [], 0
     finally:
         conn.close()
 
@@ -308,14 +289,12 @@ def update_product_service(product_id: int, product_data: ProductUpdate) -> bool
     try:
         # Convertir datos a diccionario, excluyendo campos None
         update_data = {k: v for k, v in product_data.dict().items() if v is not None}
-        
         # Convertir enums a string
         if 'category' in update_data:
             update_data['category'] = update_data['category'].value
-        
-        return actualizar_producto_parcial(conn, product_id, update_data)
+        return update_product_partial_db(conn, product_id, update_data)
     except Exception as e:
-        logger.error(f"Error en update_product_service: {e}")
+        logger.error(f"Error in update_product_service: {e}")
         return False
     finally:
         conn.close()
@@ -333,9 +312,9 @@ def update_product_stock_service(product_id: int, new_stock: int) -> bool:
     """
     conn = get_connection()
     try:
-        return actualizar_stock_producto(conn, product_id, new_stock)
+        return update_product_stock_db(conn, product_id, new_stock)
     except Exception as e:
-        logger.error(f"Error en update_product_stock_service: {e}")
+        logger.error(f"Error in update_product_stock_service: {e}")
         return False
     finally:
         conn.close()
@@ -354,9 +333,9 @@ def delete_product_service(product_id: int, soft_delete: bool = True) -> bool:
     conn = get_connection()
     try:
         if soft_delete:
-            return desactivar_producto(conn, product_id)
+            return deactivate_product_db(conn, product_id)
         else:
-            return eliminar_producto(conn, product_id)
+            return delete_product(conn, product_id)
     except Exception as e:
         logger.error(f"Error en delete_product_service: {e}")
         return False
@@ -372,7 +351,7 @@ def get_products_count_service() -> int:
     """
     conn = get_connection()
     try:
-        return contar_productos_total(conn)
+        return count_total_products_db(conn)
     except Exception as e:
         logger.error(f"Error en get_products_count_service: {e}")
         return 0
@@ -422,11 +401,11 @@ def get_filtered_products_service(filters: ProductFilters, page: int = 1, page_s
         
         # Usar función de búsqueda si hay término de búsqueda
         if filters.search:
-            products = buscar_productos(conn, filters.search)
+            products = search_products_db(conn, filters.search)
         elif filters.category:
-            products = obtener_productos_por_categoria(conn, filters.category.value)
+            products = get_products_by_category_db(conn, filters.category.value)
         else:
-            products = obtener_todos_los_productos(conn)
+            products = get_all_products(conn)
         
         # Aplicar filtros adicionales
         filtered_products = []
@@ -465,67 +444,3 @@ def get_filtered_products_service(filters: ProductFilters, page: int = 1, page_s
         return [], 0
     finally:
         conn.close()
-
-# ========== BACKWARDS COMPATIBILITY ==========
-# Mantener compatibilidad con el código existente
-
-def create_product_db(product_data: ProductCreate) -> Optional[int]:
-    """Alias para mantener compatibilidad"""
-    return create_product_service(product_data)
-
-def get_product_by_id_db(product_id: int) -> Optional[Dict[str, Any]]:
-    """Alias para mantener compatibilidad"""
-    return get_product_by_id_service(product_id)
-
-def get_all_products_db(limit: int = 50, offset: int = 0, active_only: bool = True) -> List[Dict[str, Any]]:
-    """Alias para mantener compatibilidad"""
-    return get_all_products_service(limit, offset, active_only)
-
-def update_product_db(product_id: int, product_data: ProductUpdate) -> bool:
-    """Alias para mantener compatibilidad"""
-    return update_product_service(product_id, product_data)
-
-def delete_product_db(product_id: int, soft_delete: bool = True) -> bool:
-    """Alias para mantener compatibilidad"""
-    return delete_product_service(product_id, soft_delete)
-
-# ========== ALIASES PARA COMPATIBILIDAD CON RUTAS ==========
-
-def create_product_db(product_data: ProductCreate) -> Optional[int]:
-    """Alias para mantener compatibilidad"""
-    return create_product_service(product_data)
-
-def get_product_by_id_db(product_id: int) -> Optional[Dict[str, Any]]:
-    """Alias para mantener compatibilidad"""
-    return get_product_by_id_service(product_id)
-
-def get_products_list_db(filters: ProductFilters, page: int = 1, page_size: int = 20) -> Tuple[List[Dict[str, Any]], int]:
-    """Alias para mantener compatibilidad"""
-    return get_filtered_products_service(filters, page, page_size)
-
-def hard_delete_product_db(product_id: int) -> bool:
-    """Alias para mantener compatibilidad"""
-    return delete_product_service(product_id, soft_delete=False)
-
-def create_complete_product_db(product_data: ProductCompleteCreate) -> Optional[int]:
-    """Alias para mantener compatibilidad"""
-    return create_complete_product_service(product_data)
-
-def get_products_by_category_db(category: CategoryEnum, page: int = 1, page_size: int = 20) -> Tuple[List[Dict[str, Any]], int]:
-    """Alias para mantener compatibilidad"""
-    filters = ProductFilters(category=category)
-    return get_filtered_products_service(filters, page, page_size)
-
-def search_products_db(search_term: str, page: int = 1, page_size: int = 20) -> Tuple[List[Dict[str, Any]], int]:
-    """Alias para mantener compatibilidad"""
-    filters = ProductFilters(search=search_term)
-    return get_filtered_products_service(filters, page, page_size)
-
-def get_products_in_stock_db(page: int = 1, page_size: int = 20) -> Tuple[List[Dict[str, Any]], int]:
-    """Alias para mantener compatibilidad"""
-    filters = ProductFilters(in_stock=True, is_active=True)
-    return get_filtered_products_service(filters, page, page_size)
-
-def update_stock_db(product_id: int, new_stock: int) -> bool:
-    """Alias para mantener compatibilidad"""
-    return update_product_stock_service(product_id, new_stock)

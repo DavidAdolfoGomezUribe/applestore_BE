@@ -57,7 +57,7 @@ curl "http://localhost:8000/products/category/Mac"
 #### `GET /products/search/{search_term}`
 Búsqueda de productos por término
 ```bash
-curl "http://localhost:8000/products/search/AirPods"
+curl "http://localhost:8000/products/?search=Airpods&page=1&page_size=20"
 ```
 
 #### `GET /products/in-stock`
