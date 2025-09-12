@@ -95,17 +95,23 @@ def create_complete_product_service(product_data: ProductCompleteCreate) -> Opti
     """
     conn = get_connection()
     try:
-        # Aquí deberías implementar la lógica para crear el producto completo y sus especificaciones
-        # Por ahora, solo crea el producto base (ajusta según tu modelo real)
-        return create_product(
+        # Crear producto en DB
+        p = product_data.product
+        product_id = create_product(
             conn,
-            product_data.category.value,
-            product_data.name,
-            product_data.description,
-            product_data.price,
-            product_data.stock,
-            product_data.image_primary_url or ""
+            p.category.value,
+            p.name,
+            p.description,
+            p.price,
+            p.stock,
+            p.image_primary_url or ""
         )
+        # Obtener producto creado y sincronizar con Qdrant
+        if product_id:
+            product = get_product_by_id(conn, product_id)
+            if product:
+                add_product(product)
+        return product_id
     except Exception as e:
         logger.error(f"Error in create_complete_product_service: {e}")
         return None
@@ -248,7 +254,12 @@ def update_product_service(product_id: int, product_data: ProductUpdate) -> bool
         # Convertir enums a string
         if 'category' in update_data:
             update_data['category'] = update_data['category'].value
-        return update_product_partial_db(conn, product_id, update_data)
+        success = update_product_partial_db(conn, product_id, update_data)
+        if success:
+            product = get_product_by_id(conn, product_id)
+            if product:
+                update_product(product)
+        return success
     except Exception as e:
         logger.error(f"Error in update_product_service: {e}")
         return False
@@ -268,7 +279,12 @@ def update_product_stock_service(product_id: int, new_stock: int) -> bool:
     """
     conn = get_connection()
     try:
-        return update_product_stock_db(conn, product_id, new_stock)
+        success = update_product_stock_db(conn, product_id, new_stock)
+        if success:
+            product = get_product_by_id(conn, product_id)
+            if product:
+                update_product(product)
+        return success
     except Exception as e:
         logger.error(f"Error in update_product_stock_service: {e}")
         return False
@@ -291,7 +307,12 @@ def delete_product_service(product_id: int, soft_delete: bool = True) -> bool:
         if soft_delete:
             return deactivate_product_db(conn, product_id)
         else:
-            return delete_product(conn, product_id)
+            # Get product before deleting for Qdrant sync
+            product = get_product_by_id(conn, product_id)
+            db_deleted = delete_product(conn, product_id)
+            if db_deleted and product:
+                delete_product_qdrant = delete_product(product_id)
+            return db_deleted
     except Exception as e:
         logger.error(f"Error en delete_product_service: {e}")
         return False

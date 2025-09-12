@@ -1,9 +1,27 @@
+
+from decimal import Decimal
+from datetime import datetime, date
+
+def convert_for_qdrant(obj):
+    """Recursively convert Decimal to float and datetime/date to ISO string for JSON serialization."""
+    if isinstance(obj, dict):
+        return {k: convert_for_qdrant(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_for_qdrant(i) for i in obj]
+    elif isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    else:
+        return obj
+
 import requests
 import os
 import logging
+from sentence_transformers import SentenceTransformer
 
 QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
-COLLECTION_NAME = os.getenv("QDRANT_COLLECTION", "products")
+COLLECTION_NAME = os.getenv("QDRANT_COLLECTION", "products_kb")
 
 logger = logging.getLogger(__name__)
 
@@ -13,13 +31,15 @@ def add_product(product: dict):
     El producto debe contener al menos 'id' y 'name'.
     """
     try:
-        vector = extract_vector_from_product(product)
+        # Convert Decimal to float for Qdrant compatibility
+        product_clean = convert_for_qdrant(product)
+        vector = extract_vector_from_product(product_clean)
         payload = {
             "points": [
                 {
-                    "id": product["id"],
+                    "id": product_clean["id"],
                     "vector": vector,
-                    "payload": product
+                    "payload": product_clean
                 }
             ]
         }
@@ -51,10 +71,24 @@ def delete_product(product_id: int):
         logger.error(f"Error eliminando producto de Qdrant: {e}")
         return None
 
+
+EMBED_MODEL = os.getenv("EMBED_MODEL", "intfloat/multilingual-e5-small")
+VECTOR_SIZE = 384
+_embedder = None
+
+def get_embedder():
+    global _embedder
+    if _embedder is None:
+        _embedder = SentenceTransformer(EMBED_MODEL)
+    return _embedder
+
 def extract_vector_from_product(product: dict):
     """
-    Extrae o genera el vector del producto. Aquí puedes usar un modelo de embeddings real.
-    Por ahora, retorna un vector dummy (debes reemplazarlo por tu lógica real).
+    Genera el vector de embedding para Qdrant usando name y description.
     """
-    # Ejemplo: vector de ceros de tamaño 10
-    return [0.0] * 10
+    name = product.get("name", "")
+    description = product.get("description", "")
+    text = f"{name}. {description}"
+    embedder = get_embedder()
+    vector = embedder.encode([text], normalize_embeddings=True)[0]
+    return vector.tolist() if hasattr(vector, 'tolist') else list(vector)
