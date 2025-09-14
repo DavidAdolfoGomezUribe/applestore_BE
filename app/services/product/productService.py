@@ -10,6 +10,9 @@ from models.productos.createProduct import create_product
 from models.productos.getProduct import get_product_by_id
 from models.productos.updateProduct import update_product
 from models.productos.deleteProduct import delete_product
+from models.productos.createSpecs import (
+    create_iphone_spec, create_mac_spec, create_ipad_spec, create_apple_watch_spec, create_accessory_spec
+)
 from services.qdrant.vector_sync_service import add_product, update_product, delete_product, extract_vector_from_product
 
 import json
@@ -106,8 +109,24 @@ def create_complete_product_service(product_data: ProductCompleteCreate) -> Opti
             p.stock,
             p.image_primary_url or ""
         )
-        # Obtener producto creado y sincronizar con Qdrant
+        # Insertar en tabla de especificaciones si corresponde
         if product_id:
+            # iPhone
+            if product_data.iphone_spec is not None:
+                create_iphone_spec(conn, product_id, product_data.iphone_spec)
+            # Mac
+            if product_data.mac_spec is not None:
+                create_mac_spec(conn, product_id, product_data.mac_spec)
+            # iPad
+            if product_data.ipad_spec is not None:
+                create_ipad_spec(conn, product_id, product_data.ipad_spec)
+            # Apple Watch
+            if product_data.apple_watch_spec is not None:
+                create_apple_watch_spec(conn, product_id, product_data.apple_watch_spec)
+            # Accessory
+            if product_data.accessory_spec is not None:
+                create_accessory_spec(conn, product_id, product_data.accessory_spec)
+            # Obtener producto creado y sincronizar con Qdrant
             product = get_product_by_id(conn, product_id)
             if product:
                 add_product(product)
