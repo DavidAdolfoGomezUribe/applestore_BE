@@ -9,7 +9,7 @@ def get_chat_by_id(conn, chat_id):
     Returns:
         dict: Chat encontrado o None
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute("SELECT * FROM chats WHERE id = %s", (chat_id,))
     return cursor.fetchone()
 
@@ -23,7 +23,7 @@ def get_all_chats(conn):
     Returns:
         list: Lista de chats
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
         """SELECT * FROM chats 
            ORDER BY last_activity DESC"""
@@ -42,7 +42,7 @@ def search_chats(conn, search_term):
     Returns:
         list: Lista de chats que coinciden con la búsqueda
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     search_pattern = f"%{search_term}%"
     cursor.execute(
         """SELECT * FROM chats 

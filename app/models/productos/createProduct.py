@@ -2,7 +2,7 @@ def create_product(conn, name, category, description, price, stock, image_primar
     """
     Create a new product in the database with all fields.
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
         """INSERT INTO products 
            (name, category, description, price, stock, image_primary_url, image_secondary_url, image_tertiary_url, release_date, is_active) 

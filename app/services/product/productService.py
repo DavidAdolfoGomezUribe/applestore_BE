@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 def get_all_products(conn, limit: int = 50, offset: int = 0, active_only: bool = True) -> List[Dict[str, Any]]:
     """Obtiene todos los productos con paginación"""
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     if active_only:
         cursor.execute(
             "SELECT * FROM products WHERE is_active = 1 ORDER BY created_at DESC LIMIT %s OFFSET %s", 
@@ -40,7 +40,7 @@ def get_all_products(conn, limit: int = 50, offset: int = 0, active_only: bool =
 
 def search_products_db(conn, search_term: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
     """Search products by name or description with pagination"""
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
         "SELECT * FROM products WHERE (name LIKE %s OR description LIKE %s) AND is_active = 1 ORDER BY created_at DESC LIMIT %s OFFSET %s",
         (f"%{search_term}%", f"%{search_term}%", limit, offset)
@@ -49,7 +49,7 @@ def search_products_db(conn, search_term: str, limit: int = 50, offset: int = 0)
 
 def get_products_by_category_db(conn, category: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
     """Get products by category with pagination"""
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
         "SELECT * FROM products WHERE category = %s AND is_active = 1 ORDER BY created_at DESC LIMIT %s OFFSET %s", 
         (category, limit, offset)
@@ -68,7 +68,7 @@ def update_product_partial_db(conn, product_id: int, update_data: dict) -> bool:
         fields.append(f"{field} = %s")
         values.append(value)
     values.append(product_id)
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     query = f"UPDATE products SET {', '.join(fields)} WHERE id = %s"
     cursor.execute(query, values)
     conn.commit()
@@ -76,7 +76,7 @@ def update_product_partial_db(conn, product_id: int, update_data: dict) -> bool:
 
 def update_product_stock_db(conn, product_id: int, new_stock: int) -> bool:
     """Update the stock of a product"""
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute("UPDATE products SET stock = %s WHERE id = %s", (new_stock, product_id))
     conn.commit()
     return cursor.rowcount > 0
@@ -225,7 +225,7 @@ def get_products_by_category_service(category: str, limit: int = 50, offset: int
     try:
         products = get_products_by_category_db(conn, category, limit, offset)
         # Get total count
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) as total FROM products WHERE category = %s AND is_active = 1", (category,))
         total = cursor.fetchone()['total']
         

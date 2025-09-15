@@ -2,7 +2,7 @@ def update_product(conn, product_id, name=None, description=None, price=None, st
     """
     Update product data with partial updates.
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     # Build dynamic update query
     fields = []

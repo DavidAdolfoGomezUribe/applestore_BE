@@ -11,7 +11,7 @@ def create_message(conn, chat_id, sender, body):
     Returns:
         int: ID del mensaje creado
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     # Crear el mensaje
     cursor.execute(

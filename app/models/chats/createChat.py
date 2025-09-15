@@ -3,7 +3,7 @@ def create_chat(conn, phone_number=None, email=None, user_id=None):
     """
     Crea un nuevo chat (conversación) por phone_number o email.
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
         """INSERT INTO chats (user_id, phone_number, email) 
            VALUES (%s, %s, %s)""",
@@ -17,7 +17,7 @@ def get_or_create_chat(conn, phone_number=None, email=None, user_id=None):
     """
     Busca un chat existente por phone_number o email, si no existe lo crea.
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     # Validar que al menos uno de los identificadores esté presente
     if not phone_number and not email:
