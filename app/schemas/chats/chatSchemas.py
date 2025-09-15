@@ -10,27 +10,34 @@ class MessageSender(str, Enum):
     SYSTEM = "system"
 
 # ========== SCHEMAS DE CHAT ==========
+
 class ChatBase(BaseModel):
-    phone_number: str = Field(..., max_length=20, description="Número de teléfono de WhatsApp")
-    contact_name: Optional[str] = Field(None, max_length=100, description="Nombre del contacto (opcional)")
+    phone_number: Optional[str] = Field(None, max_length=20, description="Número de teléfono de WhatsApp")
+    email: Optional[str] = Field(None, max_length=100, description="Email alternativo para chat web")
+
 
 class ChatCreate(ChatBase):
     user_id: Optional[int] = Field(None, description="ID del usuario (opcional)")
 
     class Config:
         schema_extra = {
-            "example": {
-                "phone_number": "+573105714739",
-                "contact_name": "Juan Pérez",
-                "user_id": 1
-            }
+            "examples": [
+                {
+                    "phone_number": "+573105714739",
+                    "user_id": 1
+                },
+                {
+                    "email": "juan@example.com",
+                    "user_id": 1
+                }
+            ]
         }
+
 
 class ChatResponse(ChatBase):
     id: int
     user_id: Optional[int]
     last_message: Optional[str] = Field(None, description="Último mensaje para preview")
-    unread_count: int = Field(0, description="Mensajes no leídos")
     created_at: datetime
     last_activity: datetime
 
@@ -64,7 +71,6 @@ class MessageCreate(MessageBase):
 class MessageResponse(MessageBase):
     id: int
     chat_id: int
-    is_edited: bool = Field(False, description="Si el mensaje fue editado")
     created_at: datetime
 
     class Config:
@@ -78,13 +84,3 @@ class MessageUpdate(BaseModel):
 class ChatWithMessages(ChatResponse):
     """Chat con sus mensajes incluidos"""
     messages: List[MessageResponse] = []
-
-# ========== BACKWARDS COMPATIBILITY ==========
-# Mantener compatibilidad con el código existente
-class ChatCreateRequest(ChatCreate):
-    """Alias para mantener compatibilidad"""
-    pass
-
-class MessageRequest(MessageCreate):
-    """Alias para mantener compatibilidad"""
-    pass

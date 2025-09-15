@@ -1,4 +1,4 @@
-def eliminar_chat(conn, chat_id):
+def delete_chat(conn, chat_id):
     """
     Elimina un chat y todos sus mensajes por ID.
     
@@ -12,7 +12,7 @@ def eliminar_chat(conn, chat_id):
     conn.commit()
     return cursor.rowcount > 0
 
-def eliminar_mensaje(conn, message_id):
+def delete_message(conn, message_id):
     """
     Elimina un mensaje específico.
     
@@ -28,7 +28,7 @@ def eliminar_mensaje(conn, message_id):
     conn.commit()
     return cursor.rowcount > 0
 
-def eliminar_mensajes_chat(conn, chat_id):
+def delete_messages_chat(conn, chat_id):
     """
     Elimina todos los mensajes de un chat específico.
     
@@ -49,26 +49,5 @@ def eliminar_mensajes_chat(conn, chat_id):
         (chat_id,)
     )
     
-    conn.commit()
-    return deleted_count
-
-def eliminar_chats_antiguos(conn, days_old=30):
-    """
-    Elimina chats que no han tenido actividad en X días.
-    
-    Args:
-        conn: Conexión a la base de datos
-        days_old: Días de antigüedad para considerar eliminar
-    
-    Returns:
-        int: Número de chats eliminados
-    """
-    cursor = conn.cursor()
-    cursor.execute(
-        """DELETE FROM chats 
-           WHERE last_activity < DATE_SUB(NOW(), INTERVAL %s DAY)""",
-        (days_old,)
-    )
-    deleted_count = cursor.rowcount
     conn.commit()
     return deleted_count
