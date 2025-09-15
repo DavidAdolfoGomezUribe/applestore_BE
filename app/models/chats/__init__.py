@@ -1,6 +1,5 @@
-from .createChat import crear_chat
-from .getChat import obtener_chat_por_id
-from .updateChat import actualizar_nombre_contacto, actualizar_ultimo_mensaje, actualizar_contador_no_leidos, marcar_chat_como_leido, actualizar_actividad_chat, editar_mensaje
-from .deleteChat import eliminar_chat
-from .createMensaje import crear_mensaje
-from .getMensajes import obtener_mensajes_por_chat
+from .createChat import get_or_create_chat
+from .getChat import get_chat_by_id, get_all_chats, search_chats
+from .deleteChat import delete_chat, delete_message
+from .createMensaje import create_message
+from .getMensajes import get_messages_by_chat, get_last_message_by_chat, count_messages_by_chat, get_messages_by_sender, search_messages_in_chat

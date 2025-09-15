@@ -46,6 +46,16 @@ services:
       - .env
     volumes:
       - ./app:/app
+  load-kb:
+    build: ./app
+    command: python scripts/load_kb_service.py
+    depends_on:
+      - mysql
+      - qdrant
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app
 
 volumes:
   qdrant_data:

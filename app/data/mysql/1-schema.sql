@@ -219,19 +219,18 @@ CREATE TABLE IF NOT EXISTS sales_products (
 
 -- ===== SISTEMA DE CHATS SIMPLIFICADO =====
 
--- Tabla principal de chats (especialmente para WhatsApp)
 CREATE TABLE IF NOT EXISTS chats (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NULL, -- Puede ser NULL para usuarios no registrados
     phone_number VARCHAR(20) NULL, -- Número de WhatsApp principalmente
-    contact_name VARCHAR(100) NULL, -- Nombre del contacto (opcional)
+    email VARCHAR(100) NULL, -- Email alternativo para chat web
     last_message TEXT NULL, -- Último mensaje para preview
-    unread_count INT DEFAULT 0, -- Mensajes no leídos
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_phone (phone_number),
+    INDEX idx_email (email),
     INDEX idx_last_activity (last_activity)
 );
 
@@ -241,7 +240,6 @@ CREATE TABLE IF NOT EXISTS messages (
     chat_id INT NOT NULL,
     sender ENUM('user','bot','system') NOT NULL, -- Quien envía el mensaje
     body TEXT NOT NULL, -- Contenido del mensaje
-    is_edited BOOLEAN DEFAULT FALSE, -- Si el mensaje fue editado
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Fecha del mensaje
     
     FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,

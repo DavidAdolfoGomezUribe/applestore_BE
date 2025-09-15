@@ -1,4 +1,4 @@
-def obtener_mensajes_por_chat(conn, chat_id, limit=100, offset=0):
+def get_messages_by_chat(conn, chat_id, limit=100, offset=0):
     """
     Obtiene todos los mensajes de un chat ordenados por fecha.
     
@@ -21,7 +21,7 @@ def obtener_mensajes_por_chat(conn, chat_id, limit=100, offset=0):
     )
     return cursor.fetchall()
 
-def obtener_ultimo_mensaje_chat(conn, chat_id):
+def get_last_message_by_chat(conn, chat_id):
     """
     Obtiene el último mensaje de un chat.
     
@@ -42,7 +42,7 @@ def obtener_ultimo_mensaje_chat(conn, chat_id):
     )
     return cursor.fetchone()
 
-def contar_mensajes_chat(conn, chat_id):
+def count_messages_by_chat(conn, chat_id):
     """
     Cuenta el total de mensajes en un chat.
     
@@ -61,7 +61,7 @@ def contar_mensajes_chat(conn, chat_id):
     result = cursor.fetchone()
     return result[0] if result else 0
 
-def obtener_mensajes_por_sender(conn, chat_id, sender):
+def get_messages_by_sender(conn, chat_id, sender):
     """
     Obtiene mensajes de un chat filtrados por sender.
     
@@ -82,7 +82,7 @@ def obtener_mensajes_por_sender(conn, chat_id, sender):
     )
     return cursor.fetchall()
 
-def buscar_mensajes_en_chat(conn, chat_id, search_term):
+def search_messages_in_chat(conn, chat_id, search_term):
     """
     Busca mensajes dentro de un chat por contenido.
     
