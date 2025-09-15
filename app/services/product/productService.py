@@ -23,25 +23,37 @@ import pymysql.cursors
 logger = logging.getLogger(__name__)
 
 
-def get_all_products(conn) -> List[Dict[str, Any]]:
-    """Obtiene todos los productos"""
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-    cursor.execute("SELECT * FROM products ORDER BY created_at DESC")
+def get_all_products(conn, limit: int = 50, offset: int = 0, active_only: bool = True) -> List[Dict[str, Any]]:
+    """Obtiene todos los productos con paginación"""
+    cursor = conn.cursor(dictionary=True)
+    if active_only:
+        cursor.execute(
+            "SELECT * FROM products WHERE is_active = 1 ORDER BY created_at DESC LIMIT %s OFFSET %s", 
+            (limit, offset)
+        )
+    else:
+        cursor.execute(
+            "SELECT * FROM products ORDER BY created_at DESC LIMIT %s OFFSET %s", 
+            (limit, offset)
+        )
     return cursor.fetchall()
 
-def search_products_db(conn, search_term: str) -> List[Dict[str, Any]]:
-    """Search products by name or description"""
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+def search_products_db(conn, search_term: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    """Search products by name or description with pagination"""
+    cursor = conn.cursor(dictionary=True)
     cursor.execute(
-        "SELECT * FROM products WHERE name LIKE %s OR description LIKE %s",
-        (f"%{search_term}%", f"%{search_term}%")
+        "SELECT * FROM products WHERE (name LIKE %s OR description LIKE %s) AND is_active = 1 ORDER BY created_at DESC LIMIT %s OFFSET %s",
+        (f"%{search_term}%", f"%{search_term}%", limit, offset)
     )
     return cursor.fetchall()
 
-def get_products_by_category_db(conn, category: str) -> List[Dict[str, Any]]:
-    """Get products by category"""
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-    cursor.execute("SELECT * FROM products WHERE category = %s", (category,))
+def get_products_by_category_db(conn, category: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    """Get products by category with pagination"""
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        "SELECT * FROM products WHERE category = %s AND is_active = 1 ORDER BY created_at DESC LIMIT %s OFFSET %s", 
+        (category, limit, offset)
+    )
     return cursor.fetchall()
 
 def update_product_partial_db(conn, product_id: int, update_data: dict) -> bool:
@@ -56,7 +68,7 @@ def update_product_partial_db(conn, product_id: int, update_data: dict) -> bool:
         fields.append(f"{field} = %s")
         values.append(value)
     values.append(product_id)
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     query = f"UPDATE products SET {', '.join(fields)} WHERE id = %s"
     cursor.execute(query, values)
     conn.commit()
@@ -64,7 +76,7 @@ def update_product_partial_db(conn, product_id: int, update_data: dict) -> bool:
 
 def update_product_stock_db(conn, product_id: int, new_stock: int) -> bool:
     """Update the stock of a product"""
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute("UPDATE products SET stock = %s WHERE id = %s", (new_stock, product_id))
     conn.commit()
     return cursor.rowcount > 0
@@ -102,12 +114,16 @@ def create_complete_product_service(product_data: ProductCompleteCreate) -> Opti
         p = product_data.product
         product_id = create_product(
             conn,
-            p.category.value,
             p.name,
+            p.category.value,
             p.description,
             p.price,
             p.stock,
-            p.image_primary_url or ""
+            p.image_primary_url,
+            p.image_secondary_url,
+            p.image_tertiary_url,
+            p.release_date,
+            p.is_active
         )
         # Insertar en tabla de especificaciones si corresponde
         if product_id:
@@ -193,7 +209,7 @@ def get_all_products_service(limit: int = 50, offset: int = 0, active_only: bool
     finally:
         conn.close()
 
-def get_products_by_category_service(category: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+def get_products_by_category_service(category: str, limit: int = 50, offset: int = 0) -> Tuple[List[Dict[str, Any]], int]:
     """
     Obtiene productos por categoría.
     
@@ -203,19 +219,21 @@ def get_products_by_category_service(category: str, limit: int = 50, offset: int
         offset: Offset para paginación
     
     Returns:
-        Lista de productos de la categoría
+        Tupla de (lista de productos, total)
     """
     conn = get_connection()
     try:
-        all_products = get_products_by_category_db(conn, category)
-        total = len(all_products)
-        # Apply pagination
-        products = all_products[offset:offset+limit]
+        products = get_products_by_category_db(conn, category, limit, offset)
+        # Get total count
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT COUNT(*) as total FROM products WHERE category = %s AND is_active = 1", (category,))
+        total = cursor.fetchone()['total']
+        
         # Parse JSON fields for each product
         for product in products:
             for field in ['storage_options', 'colors', 'chip_cores', 'ram_gb', 'storage_options',
-                        'display_features', 'ports', 'cameras', 'camera_features', 'connectivity',
-                        'wireless', 'audio_features', 'box_contents']:
+                         'display_features', 'ports', 'cameras', 'camera_features', 'connectivity',
+                         'wireless', 'audio_features', 'box_contents']:
                 if field in product and product[field]:
                     product[field] = parse_json_field(product[field])
         return products, total
