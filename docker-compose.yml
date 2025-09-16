@@ -8,6 +8,14 @@ services:
     env_file:
       - .env
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
   mysql:
     image: mysql:8
     environment:
@@ -34,6 +42,7 @@ services:
     depends_on:
       - qdrant
       - mysql
+      - redis
     env_file:
       - .env
       
@@ -60,3 +69,4 @@ services:
 volumes:
   qdrant_data:
   mysql_data:
+  redis_data:

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.user import userRoutes
 from routes.product import productRoutes
 from routes.chats import chatRoutes
+from routes.ai import agentRoutes
 
 app = FastAPI(
     title="🍎 Apple Store Backend API",
@@ -65,6 +66,14 @@ app = FastAPI(
             "description": "📱 **Gestión de productos Apple**. CRUD completo con especificaciones técnicas detalladas para iPhone, Mac, iPad, Apple Watch y Accessories.",
         },
         {
+            "name": "💬 Chats",
+            "description": "💬 **Sistema de chats y mensajería**. Gestión completa de conversaciones y mensajes entre usuarios y el sistema.",
+        },
+        {
+            "name": "🤖 AI Agent System",
+            "description": "🤖 **Sistema de agentes de IA con arquitectura de grafos**. Detección inteligente de intenciones, routing automático, agentes especializados (ventas, soporte, productos), tracking de costos en tiempo real, y soporte para múltiples proveedores (Gemini, OpenAI). Incluye integración con WhatsApp, chat web, y escalamiento automático.",
+        },
+        {
             "name": "migration",
             "description": "⚠️ **Endpoints temporales de migración**. Solo para desarrollo - eliminar en producción.",
         }
@@ -84,6 +93,7 @@ app.add_middleware(
 app.include_router(productRoutes.router)
 app.include_router(chatRoutes.router)
 app.include_router(userRoutes.router)
+app.include_router(agentRoutes.router)
 
 
 @app.get(
