@@ -189,6 +189,7 @@ class IntentDetector:
     def setup_agent_routing(self):
         """Configura routing hacia agentes específicos"""
         self.agent_routing = {
+            IntentType.GREETING: "general_assistant",
             IntentType.PRODUCT_INQUIRY: "sales_assistant",
             IntentType.PRICE_QUESTION: "sales_assistant", 
             IntentType.COMPARISON: "product_expert",
