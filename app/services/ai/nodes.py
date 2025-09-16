@@ -21,6 +21,8 @@ import os
 
 logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
+
 class BaseAgentNode:
     """Nodo base para todos los agentes especializados"""
     
@@ -83,50 +85,94 @@ class BaseAgentNode:
             logger.error(f"Error configurando agente: {str(e)}")
             raise
     
-    async def search_products(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Busca productos usando Qdrant"""
+    async def search_products(self, query: str, limit: int = 10) -> List[Dict]:
+        """Busca productos relevantes usando Qdrant"""
         try:
-            query_vector = self.embedding_model.encode(query).tolist()
+            logger.info(f"Iniciando búsqueda en Qdrant para: '{query}' (limit: {limit})")
             
-            search_payload = {
-                "vector": query_vector,
-                "limit": limit,
-                "score_threshold": 0.3,
-                "with_payload": True
-            }
+            from qdrant_client import QdrantClient
+            import os
             
-            url = f"{self.qdrant_url}/collections/{self.collection_name}/points/search"
-            response = requests.post(url, json=search_payload, timeout=10)
-            response.raise_for_status()
+            # Configurar Qdrant
+            qdrant_host = os.getenv("QDRANT_HOST", "localhost")
+            qdrant_port = int(os.getenv("QDRANT_PORT", "6333"))
+            collection_name = os.getenv("QDRANT_COLLECTION", "products")
             
-            results = response.json().get("result", [])
-            return [{"score": r["score"], "product": r["payload"]} for r in results]
+            logger.debug(f"Conectando a Qdrant: {qdrant_host}:{qdrant_port}, colección: {collection_name}")
+            
+            client = QdrantClient(host=qdrant_host, port=qdrant_port)
+            
+            # Verificar que la colección existe
+            collections = client.get_collections()
+            logger.debug(f"Colecciones disponibles: {[c.name for c in collections.collections]}")
+            
+            # Generar embedding para la consulta
+            from sentence_transformers import SentenceTransformer
+            model = SentenceTransformer('all-MiniLM-L6-v2')
+            logger.debug("Generando embedding para la consulta")
+            query_vector = model.encode(query).tolist()
+            logger.debug(f"Vector generado de dimensión: {len(query_vector)}")
+            
+            # Realizar búsqueda en Qdrant
+            logger.debug("Ejecutando búsqueda en Qdrant")
+            search_result = client.search(
+                collection_name=collection_name,
+                query_vector=query_vector,
+                limit=limit,
+                with_payload=True
+            )
+            
+            logger.info(f"Qdrant devolvió {len(search_result)} resultados")
+            
+            # Formatear resultados
+            products = []
+            for i, point in enumerate(search_result):
+                payload = point.payload
+                product = {
+                    "nombre": payload.get("name", ""),
+                    "precio": payload.get("price", ""),
+                    "descripcion": payload.get("description", ""),
+                    "categoria": payload.get("category", ""),
+                    "score": point.score
+                }
+                products.append(product)
+                logger.debug(f"Producto {i+1}: {payload.get('name', '')} - Score: {point.score}")
+            
+            logger.info(f"Retornando {len(products)} productos formateados")
+            return products
             
         except Exception as e:
-            logger.error(f"Error en búsqueda de productos: {str(e)}")
+            logger.error(f"Error en búsqueda de productos: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []
     
     def format_products_for_context(self, products: List[Dict[str, Any]]) -> str:
         """Formatea productos para incluir en el contexto del agente"""
+        logger.info(f"Formateando {len(products)} productos para contexto")
+        
         if not products:
+            logger.warning("No hay productos para formatear")
             return "No se encontraron productos relevantes."
         
         context = "Productos relevantes encontrados:\n\n"
-        for i, item in enumerate(products[:3], 1):
-            product = item["product"]
-            score = item["score"]
+        for i, product in enumerate(products[:3], 1):
+            logger.debug(f"Formateando producto {i}: {product.get('nombre', 'Sin nombre')}")
             
-            context += f"{i}. {product.get('name', 'Producto Apple')}\n"
-            context += f"   - Categoría: {product.get('category', 'N/A')}\n"
-            context += f"   - Precio: ${product.get('price', 'N/A')}\n"
-            context += f"   - Relevancia: {score:.2f}\n"
+            context += f"{i}. {product.get('nombre', 'Producto Apple')}\n"
+            context += f"   - Categoría: {product.get('categoria', 'N/A')}\n"
+            context += f"   - Precio: ${product.get('precio', 'N/A')}\n"
+            context += f"   - Relevancia: {product.get('score', 0):.2f}\n"
             
-            if product.get('specifications'):
-                specs = product['specifications']
-                if isinstance(specs, dict):
-                    context += f"   - Especificaciones clave: {', '.join(list(specs.keys())[:3])}\n"
+            if product.get('descripcion'):
+                context += f"   - Descripción: {product['descripcion'][:100]}...\n"
             
             context += "\n"
+        
+        logger.info(f"Contexto generado: {len(context)} caracteres")
+        logger.debug(f"Contexto completo: {context[:200]}...")
+        
+        return context
         
         return context
     
@@ -158,8 +204,15 @@ class BaseAgentNode:
             # Preparar prompt completo
             full_prompt = f"{self.config.system_prompt}\n\n"
             if context:
+                logger.info(f"Agregando contexto al prompt: {len(context)} caracteres")
                 full_prompt += f"{context}\n\n"
+            else:
+                logger.warning("No hay contexto para agregar al prompt")
+            
             full_prompt += f"Usuario: {message}\nAsistente:"
+            
+            logger.info(f"Prompt completo preparado: {len(full_prompt)} caracteres")
+            logger.debug(f"Prompt final (primeros 500 chars): {full_prompt[:500]}...")
             
             # Generar respuesta
             response = self.gemini_model.generate_content(
@@ -167,37 +220,103 @@ class BaseAgentNode:
                 generation_config=self.generation_config
             )
             
-            return response.text if response.text else "No pude generar una respuesta."
+            response_text = response.text if response.text else "No pude generar una respuesta."
+            logger.info(f"Respuesta generada: {len(response_text)} caracteres")
+            
+            return response_text
             
         except Exception as e:
             logger.error(f"Error generando respuesta Gemini: {str(e)}")
             return f"Disculpa, hubo un error procesando tu consulta con Gemini: {str(e)}"
     
+    def prepare_full_context(self, 
+                           message: str,
+                           product_context: Optional[str] = None,
+                           conversation_history: Optional[List[Dict]] = None,
+                           additional_context: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Prepara el contexto completo combinando historial, productos y contexto adicional
+        """
+        logger.info("Preparando contexto completo para el modelo")
+        context_parts = []
+        
+        # Agregar historial de conversación si existe
+        if conversation_history:
+            logger.info(f"Agregando historial de {len(conversation_history)} mensajes al contexto")
+            context_parts.append("=== HISTORIAL DE CONVERSACIÓN ===")
+            for msg in conversation_history[-5:]:  # Solo últimos 5 mensajes
+                role = "Usuario" if msg.get("role") == "user" else "Asistente"
+                content = msg.get("content", "")
+                context_parts.append(f"{role}: {content}")
+            context_parts.append("=== FIN DEL HISTORIAL ===\n")
+            logger.debug(f"Contexto de historial preparado: {len(context_parts)} líneas")
+        else:
+            logger.info("No hay historial de conversación para agregar al contexto")
+        
+        # Agregar contexto de productos si existe
+        if product_context:
+            logger.info("Agregando contexto de productos al prompt")
+            logger.debug(f"Contexto de productos: {product_context[:200]}...")
+            context_parts.append("=== PRODUCTOS RELACIONADOS ===")
+            context_parts.append(product_context)
+            context_parts.append("=== FIN DE PRODUCTOS ===\n")
+        else:
+            logger.warning("No hay contexto de productos para agregar")
+        
+        # Agregar contexto adicional si existe
+        if additional_context:
+            user_preferences = additional_context.get("user_preferences")
+            if user_preferences:
+                context_parts.append("=== PREFERENCIAS DEL USUARIO ===")
+                context_parts.append(str(user_preferences))
+                context_parts.append("=== FIN DE PREFERENCIAS ===\n")
+        
+        final_context = "\n".join(context_parts) if context_parts else None
+        logger.info(f"Contexto final preparado: {len(final_context) if final_context else 0} caracteres")
+        
+        return final_context
+
     async def process_message(self, 
                             message: str, 
                             chat_id: Optional[int] = None,
                             user_id: Optional[int] = None,
-                            include_product_search: bool = True) -> Dict[str, Any]:
+                            include_product_search: bool = True,
+                            context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Procesa un mensaje y genera respuesta completa
         """
         start_time = time.time()
         
         try:
-            context = None
+            product_context = None
             products = []
             
             # Búsqueda de productos si está habilitada
             if include_product_search:
+                logger.info(f"Realizando búsqueda de productos para: '{message}'")
                 products = await self.search_products(message)
+                logger.info(f"Productos encontrados: {len(products)}")
+                
                 if products:
-                    context = self.format_products_for_context(products)
+                    logger.debug(f"Primeros 2 productos: {products[:2]}")
+                    product_context = self.format_products_for_context(products)
+                    logger.info(f"Contexto de productos generado: {len(product_context)} caracteres")
+                else:
+                    logger.warning("No se encontraron productos relevantes")
+            
+            # Preparar contexto completo
+            full_context = self.prepare_full_context(
+                message=message,
+                product_context=product_context,
+                conversation_history=context.get("conversation_history", []) if context else [],
+                additional_context=context
+            )
             
             # Generar respuesta según proveedor
             if self.config.provider == AIProvider.OPENAI:
-                response_text = await self.generate_response_openai(message, context)
+                response_text = await self.generate_response_openai(message, full_context)
             elif self.config.provider == AIProvider.GEMINI:
-                response_text = await self.generate_response_gemini(message, context)
+                response_text = await self.generate_response_gemini(message, full_context)
             else:
                 response_text = "Proveedor de IA no soportado actualmente."
             
@@ -208,7 +327,7 @@ class BaseAgentNode:
                 agent_type=self.config.name.lower().replace(" ", "_"),
                 model=self.config.model,
                 provider=self.config.provider,
-                input_text=f"{context or ''}\n{message}",
+                input_text=f"{full_context or ''}\n{message}",
                 output_text=response_text,
                 response_time=response_time,
                 chat_id=chat_id,
@@ -219,7 +338,7 @@ class BaseAgentNode:
             return {
                 "response": response_text,
                 "products": products,
-                "context_used": context is not None,
+                "context_used": bool(full_context),
                 "response_time": response_time,
                 "agent_type": self.config.name,
                 "model_used": self.config.model.value,

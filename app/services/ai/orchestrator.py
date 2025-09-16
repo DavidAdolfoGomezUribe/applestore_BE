@@ -13,7 +13,7 @@ from services.ai.nodes import AgentNodeFactory
 from services.ai.cost_tracker import cost_tracker
 from services.ai.config import ai_config
 from services.chats.chatService import create_message_service, get_messages_service
-from schemas.chats.chatSchemas import MessageCreate
+from schemas.chats.chatSchemas import MessageCreate, MessageSender
 
 logger = logging.getLogger(__name__)
 
@@ -129,11 +129,14 @@ class GraphOrchestrator:
                 response.update({
                     "response": agent_response["response"],
                     "agent_used": agent_type,
-                    "agent_response": agent_response,
                     "requires_agent": True,
                     "cost": agent_response.get("cost", 0.0),
                     "model_used": agent_response.get("model_used"),
-                    "response_time": agent_response.get("response_time", 0.0)
+                    "response_time": agent_response.get("response_time", 0.0),
+                    # Campos adicionales del agente sin duplicar 'response'
+                    "products": agent_response.get("products", []),
+                    "context_used": agent_response.get("context_used", False),
+                    "success": agent_response.get("success", True)
                 })
                 response["processing_steps"].append(f"agent_{agent_type}_processed")
                 
@@ -209,17 +212,30 @@ class GraphOrchestrator:
             # Obtener nodo del agente
             agent_node = await self._get_agent_node(agent_type)
             
-            # Procesar mensaje
+            # Cargar historial de conversación como contexto
+            conversation_history = await self._get_conversation_history(chat_id)
+            
+            # Combinar contexto existente con historial
+            full_context = context or {}
+            if conversation_history:
+                full_context["conversation_history"] = conversation_history
+                full_context["has_conversation_history"] = True
+            else:
+                full_context["has_conversation_history"] = False
+            
+            # Procesar mensaje con contexto completo
             agent_result = await agent_node.process_message(
                 message=message,
                 chat_id=chat_id,
                 user_id=user_id,
-                include_product_search=True
+                include_product_search=True,
+                context=full_context
             )
             
             # Enriquecer con información adicional
             agent_result["cost"] = await self._calculate_message_cost(agent_result)
             agent_result["agent_type"] = agent_type
+            agent_result["context_used"] = bool(conversation_history)
             
             return agent_result
             
@@ -230,7 +246,8 @@ class GraphOrchestrator:
                 "success": False,
                 "error": str(e),
                 "agent_type": agent_type,
-                "cost": 0.0
+                "cost": 0.0,
+                "context_used": False
             }
     
     async def _calculate_message_cost(self, agent_result: Dict[str, Any]) -> float:
@@ -242,6 +259,46 @@ class GraphOrchestrator:
         except Exception as e:
             logger.warning(f"Error calculando costo: {str(e)}")
             return 0.0
+    
+    async def _get_conversation_history(self, chat_id: int, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Obtiene el historial reciente de conversación de un chat
+        """
+        try:
+            logger.info(f"Intentando cargar historial para chat {chat_id}")
+            
+            # Obtener mensajes recientes del chat (excluyendo el mensaje actual)
+            messages = get_messages_service(chat_id=chat_id, limit=limit)
+            
+            logger.info(f"Mensajes obtenidos de la BD: {len(messages) if messages else 0}")
+            
+            if not messages:
+                logger.info(f"No hay mensajes en el historial para chat {chat_id}")
+                return []
+            
+            # Convertir a formato esperado por los agentes
+            conversation_history = []
+            for msg in messages:
+                logger.debug(f"Procesando mensaje: ID={msg.id}, sender={msg.sender}, body={msg.body[:50]}...")
+                
+                # msg es un objeto MessageResponse de Pydantic, acceder a atributos directamente
+                role = "user" if msg.sender.value == "USER" else "assistant"
+                conversation_history.append({
+                    "role": role,
+                    "content": msg.body,
+                    "timestamp": msg.created_at.isoformat() if msg.created_at else None,
+                    "message_id": msg.id
+                })
+            
+            logger.info(f"Historial convertido: {len(conversation_history)} mensajes para chat {chat_id}")
+            logger.debug(f"Últimos 2 mensajes del historial: {conversation_history[-2:] if len(conversation_history) >= 2 else conversation_history}")
+            
+            return conversation_history
+            
+        except Exception as e:
+            logger.warning(f"Error cargando historial de conversación para chat {chat_id}: {str(e)}")
+            logger.exception("Detalles del error:")
+            return []
     
     async def _save_conversation_to_db(self,
                                       chat_id: int,
@@ -255,30 +312,16 @@ class GraphOrchestrator:
             # Guardar mensaje del usuario
             user_msg = MessageCreate(
                 chat_id=chat_id,
-                content=user_message,
-                is_from_user=True,
-                metadata={
-                    "intent": metadata.get("intent"),
-                    "confidence": metadata.get("confidence"),
-                    "bot_type": metadata.get("bot_type"),
-                    "detected_keywords": metadata.get("detected_keywords", [])
-                }
+                sender=MessageSender.USER,
+                body=user_message
             )
             create_message_service(user_msg)
             
-            # Guardar respuesta del bot/agente
+            # Guardar respuesta del bot/agente  
             bot_msg = MessageCreate(
                 chat_id=chat_id,
-                content=bot_response,
-                is_from_user=False,
-                metadata={
-                    "agent_used": metadata.get("agent_used"),
-                    "response_type": metadata.get("response_type"),
-                    "processing_time": metadata.get("total_processing_time"),
-                    "cost": metadata.get("cost", 0.0),
-                    "model_used": metadata.get("model_used"),
-                    "processing_steps": metadata.get("processing_steps", [])
-                }
+                sender=MessageSender.BOT,
+                body=bot_response
             )
             create_message_service(bot_msg)
             
