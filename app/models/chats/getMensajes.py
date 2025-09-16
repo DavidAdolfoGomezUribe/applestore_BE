@@ -11,7 +11,7 @@ def get_messages_by_chat(conn, chat_id, limit=100, offset=0):
     Returns:
         list: Lista de mensajes del chat
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
         """SELECT * FROM messages 
            WHERE chat_id = %s 
@@ -32,7 +32,7 @@ def get_last_message_by_chat(conn, chat_id):
     Returns:
         dict: Último mensaje o None
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
         """SELECT * FROM messages 
            WHERE chat_id = %s 
@@ -73,7 +73,7 @@ def get_messages_by_sender(conn, chat_id, sender):
     Returns:
         list: Lista de mensajes del sender especificado
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute(
         """SELECT * FROM messages 
            WHERE chat_id = %s AND sender = %s 
@@ -94,7 +94,7 @@ def search_messages_in_chat(conn, chat_id, search_term):
     Returns:
         list: Lista de mensajes que contienen el término
     """
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     search_pattern = f"%{search_term}%"
     cursor.execute(
         """SELECT * FROM messages 
