@@ -86,17 +86,18 @@ class BaseAgentNode:
             raise
     
     async def search_products(self, query: str, limit: int = 10) -> List[Dict]:
-        """Busca productos relevantes usando Qdrant"""
+        """Busca productos relevantes usando Qdrant con búsqueda híbrida"""
         try:
             logger.info(f"Iniciando búsqueda en Qdrant para: '{query}' (limit: {limit})")
             
             from qdrant_client import QdrantClient
+            from qdrant_client.models import Filter, FieldCondition, MatchText, MatchAny
             import os
             
             # Configurar Qdrant
             qdrant_host = os.getenv("QDRANT_HOST", "localhost")
             qdrant_port = int(os.getenv("QDRANT_PORT", "6333"))
-            collection_name = os.getenv("QDRANT_COLLECTION", "products")
+            collection_name = os.getenv("QDRANT_COLLECTION", "products_kb")
             
             logger.debug(f"Conectando a Qdrant: {qdrant_host}:{qdrant_port}, colección: {collection_name}")
             
@@ -108,21 +109,91 @@ class BaseAgentNode:
             
             # Generar embedding para la consulta
             from sentence_transformers import SentenceTransformer
-            model = SentenceTransformer('all-MiniLM-L6-v2')
+            model = SentenceTransformer('intfloat/multilingual-e5-small')  # Mismo modelo usado en carga
             logger.debug("Generando embedding para la consulta")
             query_vector = model.encode(query).tolist()
             logger.debug(f"Vector generado de dimensión: {len(query_vector)}")
             
-            # Realizar búsqueda en Qdrant
-            logger.debug("Ejecutando búsqueda en Qdrant")
+            # Preparar filtro de palabras clave para mejorar la búsqueda
+            query_lower = query.lower()
+            keywords = []
+            
+            # Extraer palabras clave importantes
+            if "iphone" in query_lower:
+                keywords.append("iphone")
+            if "ipad" in query_lower:
+                keywords.append("ipad")
+            if "mac" in query_lower:
+                keywords.append("mac")
+            if "airpods" in query_lower:
+                keywords.append("airpods")
+            if "watch" in query_lower:
+                keywords.append("watch")
+            if "pro" in query_lower:
+                keywords.append("pro")
+            if "max" in query_lower:
+                keywords.append("max")
+            if "15" in query_lower:
+                keywords.append("15")
+            if "14" in query_lower:
+                keywords.append("14")
+            if "13" in query_lower:
+                keywords.append("13")
+                
+            logger.debug(f"Palabras clave extraídas: {keywords}")
+            
+            # Realizar búsqueda principal con vectores
+            logger.debug("Ejecutando búsqueda vectorial en Qdrant")
             search_result = client.search(
                 collection_name=collection_name,
                 query_vector=query_vector,
-                limit=limit,
+                limit=limit * 2,  # Obtener más resultados para filtrar después
                 with_payload=True
             )
             
-            logger.info(f"Qdrant devolvió {len(search_result)} resultados")
+            logger.info(f"Qdrant devolvió {len(search_result)} resultados vectoriales")
+            
+            # Si tenemos palabras clave específicas, intentar búsqueda por filtro también
+            if keywords:
+                try:
+                    logger.debug(f"Realizando búsqueda adicional por palabras clave: {keywords}")
+                    
+                    # Buscar productos que contengan las palabras clave en el nombre
+                    keyword_results = []
+                    for keyword in keywords:
+                        keyword_search = client.search(
+                            collection_name=collection_name,
+                            query_vector=query_vector,
+                            query_filter=Filter(
+                                must=[
+                                    FieldCondition(
+                                        key="name",
+                                        match=MatchText(text=keyword)
+                                    )
+                                ]
+                            ),
+                            limit=10,
+                            with_payload=True
+                        )
+                        keyword_results.extend(keyword_search)
+                    
+                    logger.debug(f"Búsqueda por palabras clave encontró {len(keyword_results)} resultados adicionales")
+                    
+                    # Combinar resultados y eliminar duplicados
+                    all_results = list(search_result) + keyword_results
+                    seen_ids = set()
+                    unique_results = []
+                    
+                    for result in all_results:
+                        if result.id not in seen_ids:
+                            seen_ids.add(result.id)
+                            unique_results.append(result)
+                            
+                    search_result = unique_results[:limit]
+                    logger.info(f"Resultados combinados y únicos: {len(search_result)}")
+                    
+                except Exception as e:
+                    logger.warning(f"Error en búsqueda por palabras clave: {e}, usando solo búsqueda vectorial")
             
             # Formatear resultados
             products = []
