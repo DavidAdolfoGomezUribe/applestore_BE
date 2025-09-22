@@ -1,0 +1,17 @@
+sentence-transformers
+fastapi
+uvicorn[standard]
+qdrant-client
+langroid
+fastembed
+pymysql
+python-dotenv
+python-multipart
+pydantic
+passlib[bcrypt]
+python-jose[cryptography]
+bcrypt==3.2.0
+google-generativeai
+openai
+tiktoken
+redis>=4.5.0
